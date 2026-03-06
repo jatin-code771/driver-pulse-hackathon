@@ -78,11 +78,17 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
 
         context = f"Motion: {motion_ctx} | Audio: {audio_ctx}"
 
+        # ── Dual-sensor evidence flags ──────────────────────
+        has_audio_evidence = has_noise_spike or has_argument or has_sustained or a_score > 0.30
+        has_motion_evidence = has_harsh_brake or has_harsh_accel or has_moderate
+        dual_sensor = has_audio_evidence and has_motion_evidence
+
         # Determine flag_type by priority ---------------------------------
         flag_type = None
         severity = "low"
         explanation = ""
 
+        # 1. conflict_moment: harsh motion + argument signal
         if (has_harsh_brake or has_harsh_accel) and has_argument:
             flag_type = "conflict_moment"
             severity = _score_severity(c_score)
@@ -92,7 +98,9 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
                                f"+ sustained high audio ({audio_db:.0f} dB). Potential argument.")
             else:
                 explanation = f"Combined signal: {verb} ({accel_mag:.1f} m/s²) + audio conflict."
-        elif has_harsh_brake or has_harsh_accel:
+
+        # 2. harsh_braking: harsh brake/accel without argument (gate by score)
+        elif (has_harsh_brake or has_harsh_accel) and c_score >= 0.35:
             flag_type = "harsh_braking"
             severity = _score_severity(c_score)
             if has_harsh_brake:
@@ -101,14 +109,7 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
             else:
                 explanation = f"Hard acceleration detected ({accel_mag:.1f} m/s² spike)."
 
-        elif has_sustained or (is_high_stress and a_score > 0.3):
-            flag_type = "sustained_stress"
-            severity = "high" if c_score > 0.7 else ("medium" if c_score > 0.4 else "low")
-            if pd.notna(audio_db) and audio_db > 0:
-                explanation = f"Continued elevated audio ({audio_db:.0f} dB) with moderate motion disturbance."
-            else:
-                explanation = f"Sustained stress detected: motion_score={m_score} audio_score={a_score}"
-
+        # 3. audio_spike: noise spike or argument (no motion event)
         elif has_noise_spike or has_argument:
             flag_type = "audio_spike"
             severity = _score_severity(c_score)
@@ -117,15 +118,23 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
             else:
                 explanation = f"Audio spike detected: audio_score={a_score}"
 
-        elif has_moderate:
+        # 4. sustained_stress: sustained noise + elevated combined score
+        elif has_sustained and c_score >= 0.50:
+            flag_type = "sustained_stress"
+            severity = "high" if c_score > 0.7 else ("medium" if c_score > 0.4 else "low")
+            if pd.notna(audio_db) and audio_db > 0:
+                explanation = f"Continued elevated audio ({audio_db:.0f} dB) with moderate motion disturbance."
+            else:
+                explanation = f"Sustained stress detected: motion_score={m_score} audio_score={a_score}"
+
+        # 5. moderate_brake: lower gate when both sensors agree
+        elif has_moderate and (c_score >= 0.35 if dual_sensor else c_score >= 0.45):
             flag_type = "moderate_brake"
             severity = _score_severity(c_score)
-            explanation = f"Moderate motion event ({accel_mag:.1f} m/s²). Normal traffic pattern."
-
-        elif is_high_stress:
-            flag_type = "sustained_stress"
-            severity = "high"
-            explanation = f"High stress moment: motion_score={m_score} audio_score={a_score}"
+            if dual_sensor:
+                explanation = f"Moderate motion event ({accel_mag:.1f} m/s²) with audio evidence (score={a_score})."
+            else:
+                explanation = f"Moderate motion event ({accel_mag:.1f} m/s²). Normal traffic pattern."
 
         if flag_type is None:
             continue
@@ -149,22 +158,58 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
 
     if len(df) > 0:
         # Keep only the top flags per trip (reference averages ~1.5 flags/trip)
-        df = df.sort_values('combined_score', ascending=False)
+        # Sort by priority: conflict_moment first (rare & high-value), then by score
+        type_priority = {'conflict_moment': 0, 'audio_spike': 1, 'harsh_braking': 2,
+                         'sustained_stress': 3, 'moderate_brake': 4}
+        df['_type_pri'] = df['flag_type'].map(type_priority).fillna(5)
+        df = df.sort_values(['_type_pri', 'combined_score'], ascending=[True, False])
         kept = []
         for trip_id, group in df.groupby('trip_id'):
-            n_accel = len(group)
-            cap = max(2, min(5, n_accel // 3))
+            n = len(group)
+            cap = max(1, min(2, n // 3))
             top = group.head(cap)
-            # Ensure diversity of flag types
+            # Ensure diversity of flag types (add 1 per missing type)
             remaining_types = set(group['flag_type']) - set(top['flag_type'])
+            added = 0
             for _, r in group.iloc[cap:].iterrows():
-                if r['flag_type'] in remaining_types:
+                if r['flag_type'] in remaining_types and added < 1:
                     top = pd.concat([top, r.to_frame().T])
                     remaining_types.discard(r['flag_type'])
-                if not remaining_types:
+                    added += 1
+                if not remaining_types or added >= 1:
                     break
             kept.append(top)
         df = pd.concat(kept, ignore_index=True)
+        df = df.drop(columns=['_type_pri'])
+
+        # Trip-level fusion: if a trip has both motion (harsh/moderate) and audio
+        # (audio_spike/sustained_stress) flags but no conflict_moment, promote one
+        # flag to conflict_moment. Strategy: promote audio flag to preserve the
+        # sole harsh_braking; but if trip has 2+ harsh_braking, promote a harsh one.
+        motion_types = {'harsh_braking'}
+        audio_types = {'audio_spike', 'sustained_stress'}
+        for trip_id, group in df.groupby('trip_id'):
+            types_present = set(group['flag_type'])
+            has_motion_flag = bool(types_present & motion_types)
+            has_audio_flag = bool(types_present & audio_types)
+            if has_motion_flag and has_audio_flag and 'conflict_moment' not in types_present:
+                harsh_count = (group['flag_type'] == 'harsh_braking').sum()
+                if harsh_count >= 2:
+                    # Safe to promote a harsh_braking (one still survives)
+                    harsh_flags = group[group['flag_type'] == 'harsh_braking']
+                    best_idx = harsh_flags['combined_score'].idxmax()
+                else:
+                    # Promote audio flag to preserve the sole harsh_braking
+                    audio_flags = group[group['flag_type'].isin(audio_types)]
+                    if len(audio_flags) == 0:
+                        continue
+                    best_idx = audio_flags['combined_score'].idxmax()
+                df.loc[best_idx, 'flag_type'] = 'conflict_moment'
+                old_exp = df.loc[best_idx, 'explanation']
+                df.loc[best_idx, 'explanation'] = (
+                    f"Combined signal: motion + audio events detected in trip. {old_exp}"
+                )
+
         df = df.sort_values('timestamp').reset_index(drop=True)
         df['flag_id'] = [f"FLAG{str(i+1).zfill(3)}" for i in range(len(df))]
 
