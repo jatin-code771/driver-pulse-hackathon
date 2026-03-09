@@ -57,12 +57,14 @@ function App() {
   const [tripsData, setTripsData] = useState([]);
   const [viewMode, setViewMode] = useState("cards"); // "cards" or "table"
 
+  const API_BASE = import.meta.env.VITE_API_URL || "";
+
   useEffect(() => {
     // Load all three datasets from API in parallel
     Promise.all([
-      fetch("/api/flagged-moments").then((r) => r.json()),
-      fetch("/api/accelerometer").then((r) => r.json()),
-      fetch("/api/trips").then((r) => r.json()),
+      fetch(`${API_BASE}/api/flagged-moments`).then((r) => r.json()),
+      fetch(`${API_BASE}/api/accelerometer`).then((r) => r.json()),
+      fetch(`${API_BASE}/api/trips`).then((r) => r.json()),
     ]).then(([flagsJson, accelJson, tripsJson]) => {
       setData(flagsJson.filter((r) => r.flag_id));
       setAccelData(accelJson.filter((r) => r.sensor_id));
