@@ -3,18 +3,16 @@ import numpy as np
 from math import ceil
 from pathlib import Path
 
+MIN_HOURS_FOR_VELOCITY = 0.25   # cold start threshold
 
-# =========================================================
-# CORE COMPUTATION ENGINE
-# =========================================================
 
 def generate_realtime_driver_predictions(df, save_path):
 
     save_path.mkdir(parents=True, exist_ok=True)
 
-    # -------------------------------
+    # ---------------------------------------------------
     # Fix datatypes
-    # -------------------------------
+    # ---------------------------------------------------
 
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
     df["shift_end_time"] = pd.to_datetime(df["shift_end_time"], errors="coerce")
@@ -26,7 +24,7 @@ def generate_realtime_driver_predictions(df, save_path):
     for _, row in df.iterrows():
 
         driver_id = row["driver_id"]
-        driver_name = row["name"]
+        driver_name = row.get("name", "unknown")
 
         earnings = row.get("cumulative_earnings", 0)
         elapsed = row.get("elapsed_hours", 0)
@@ -37,9 +35,9 @@ def generate_realtime_driver_predictions(df, save_path):
         timestamp = row["timestamp"]
         shift_end = row["shift_end_time"]
 
-        # -------------------------------
+        # ---------------------------------------------------
         # Handle NaNs
-        # -------------------------------
+        # ---------------------------------------------------
 
         earnings = 0 if pd.isna(earnings) else earnings
         elapsed = 0 if pd.isna(elapsed) else elapsed
@@ -47,9 +45,9 @@ def generate_realtime_driver_predictions(df, save_path):
         target = 0 if pd.isna(target) else target
         avg_hourly = 0 if pd.isna(avg_hourly) else avg_hourly
 
-        # =========================================================
-        # Remaining Shift Time
-        # =========================================================
+        # ---------------------------------------------------
+        # Remaining shift time
+        # ---------------------------------------------------
 
         if pd.isna(timestamp) or pd.isna(shift_end):
             remaining_hours = 0
@@ -58,31 +56,34 @@ def generate_realtime_driver_predictions(df, save_path):
 
         remaining_hours = max(remaining_hours, 0)
 
-        # =========================================================
-        # CURRENT EARNING VELOCITY
-        # =========================================================
+        # ---------------------------------------------------
+        # Current velocity (cold start protection)
+        # ---------------------------------------------------
 
-        if elapsed <= 0.25 or trips == 0:
+        if elapsed <= MIN_HOURS_FOR_VELOCITY or trips == 0:
             current_velocity = avg_hourly
+            cold_start = True
         else:
             current_velocity = earnings / elapsed
+            cold_start = False
 
         if pd.isna(current_velocity):
             current_velocity = 0
 
+        # cap unrealistic spikes
         max_velocity = 3 * avg_hourly
-
         if current_velocity > max_velocity:
             current_velocity = max_velocity
-        # =========================================================
-        # Remaining Earnings
-        # =========================================================
+
+        # ---------------------------------------------------
+        # Remaining earnings
+        # ---------------------------------------------------
 
         remaining_earnings = max(target - earnings, 0)
 
-        # =========================================================
-        # TARGET VELOCITY
-        # =========================================================
+        # ---------------------------------------------------
+        # Target velocity
+        # ---------------------------------------------------
 
         if remaining_hours > 0:
             target_velocity = remaining_earnings / remaining_hours
@@ -92,9 +93,29 @@ def generate_realtime_driver_predictions(df, save_path):
         if pd.isna(target_velocity):
             target_velocity = 0
 
-        # =========================================================
-        # Average Earnings Per Trip
-        # =========================================================
+        # ---------------------------------------------------
+        # Pacing ratio (from friend's logic)
+        # ---------------------------------------------------
+
+        if target_velocity > 0:
+            pacing_ratio = current_velocity / target_velocity
+        else:
+            pacing_ratio = np.nan
+
+        pacing_ratio = np.clip(pacing_ratio, 0, 5)
+
+        # ---------------------------------------------------
+        # Goal completion %
+        # ---------------------------------------------------
+
+        if target > 0:
+            progress_percent = min((earnings / target) * 100, 100)
+        else:
+            progress_percent = 0
+
+        # ---------------------------------------------------
+        # Average earnings per trip
+        # ---------------------------------------------------
 
         if trips > 0:
             avg_trip = earnings / trips
@@ -104,18 +125,18 @@ def generate_realtime_driver_predictions(df, save_path):
         if pd.isna(avg_trip) or avg_trip <= 0:
             avg_trip = 0
 
-        # =========================================================
-        # Trips Needed to Reach Goal
-        # =========================================================
+        # ---------------------------------------------------
+        # Trips needed to reach goal
+        # ---------------------------------------------------
 
         if avg_trip > 0:
             trips_to_goal = ceil(remaining_earnings / avg_trip)
         else:
             trips_to_goal = 0
 
-        # =========================================================
-        # Estimated Time to Goal
-        # =========================================================
+        # ---------------------------------------------------
+        # Estimated time to goal
+        # ---------------------------------------------------
 
         if current_velocity > 0:
             time_to_goal = remaining_earnings / current_velocity
@@ -125,51 +146,44 @@ def generate_realtime_driver_predictions(df, save_path):
         if np.isinf(time_to_goal):
             time_to_goal = 0
 
-        # =========================================================
-        # Goal Status
-        # =========================================================
+        # ---------------------------------------------------
+        # Forecast logic
+        # ---------------------------------------------------
 
-        if earnings >= target:
-            goal_status = "achieved"
-        else:
-            goal_status = "in_progress"
-
-        # =========================================================
-        # Forecast Logic
-        # =========================================================
-
-        if goal_status == "achieved":
-
+        if progress_percent >= 100:
             forecast = "ahead"
 
         else:
 
-            if target_velocity == 0:
-                ratio = 1
-            else:
-                ratio = current_velocity / target_velocity
+            if cold_start:
+                forecast = "cold_start"
 
-            if ratio >= 1.2:
+            elif pacing_ratio >= 1.25:
                 forecast = "ahead"
 
-            elif ratio >= 0.9:
+            elif pacing_ratio >= 0.85:
                 forecast = "on_track"
 
-            else:
+            elif pacing_ratio >= 0.50:
                 forecast = "at_risk"
 
-        # =========================================================
-        # Goal Progress
-        # =========================================================
+            else:
+                forecast = "critical"
+
+        # ---------------------------------------------------
+        # Projected earnings at shift end
+        # ---------------------------------------------------
+
+        projected_earnings = earnings + current_velocity * remaining_hours
 
         if target > 0:
-            progress_percent = min((earnings / target) * 100, 100)
+            projected_completion_pct = min((projected_earnings / target) * 100, 200)
         else:
-            progress_percent = 0
+            projected_completion_pct = 0
 
-        # =========================================================
-        # Store Result
-        # =========================================================
+        # ---------------------------------------------------
+        # Store results
+        # ---------------------------------------------------
 
         results.append({
 
@@ -178,24 +192,28 @@ def generate_realtime_driver_predictions(df, save_path):
 
             "timestamp": timestamp,
 
-            "cumulative_earnings": earnings,
+            "cumulative_earnings": round(earnings,2),
 
-            "current_velocity": round(current_velocity, 2),
-            "target_velocity": round(target_velocity, 2),
+            "current_velocity": round(current_velocity,2),
+            "target_velocity": round(target_velocity,2),
 
-            "velocity_delta": round(current_velocity - target_velocity, 2),
+            "velocity_delta": round(current_velocity - target_velocity,2),
 
-            "remaining_earnings": round(remaining_earnings, 2),
-            "remaining_shift_hours": round(remaining_hours, 2),
+            "remaining_earnings": round(remaining_earnings,2),
+            "remaining_shift_hours": round(remaining_hours,2),
+
+            "pacing_ratio": round(pacing_ratio,2) if not pd.isna(pacing_ratio) else None,
 
             "trips_completed": trips,
             "trips_to_goal": trips_to_goal,
 
-            "estimated_time_to_goal_hours": round(time_to_goal, 2),
+            "estimated_time_to_goal_hours": round(time_to_goal,2),
 
-            "goal_progress_percent": round(progress_percent, 2),
+            "goal_progress_percent": round(progress_percent,2),
 
-            "goal_status": goal_status,
+            "projected_earnings": round(projected_earnings,2),
+            "projected_completion_percent": round(projected_completion_pct,2),
+
             "forecast_status": forecast
         })
 
@@ -210,10 +228,6 @@ def generate_realtime_driver_predictions(df, save_path):
 
     return output_df
 
-
-# =========================================================
-# MAIN EXECUTION
-# =========================================================
 
 if __name__ == "__main__":
 

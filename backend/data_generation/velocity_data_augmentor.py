@@ -1,113 +1,135 @@
 import pandas as pd
-import numpy as np
-import uuid
-from datetime import timedelta
+import random
 from pathlib import Path
+from datetime import timedelta
 
-# ---------------------------------------------------
-# PATH CONFIGURATION
-# ---------------------------------------------------
+# -------------------------------------------------
+# PATH SETUP
+# -------------------------------------------------
 
-# backend directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# earnings velocity dataset
-input_path = BASE_DIR / "driver_pulse_hackathon_data" / "earnings" / "earnings_velocity_log.csv"
+TRIPS_PATH = BASE_DIR / "driver_pulse_hackathon_data" / "trips" / "trips.csv"
+VELOCITY_PATH = BASE_DIR / "driver_pulse_hackathon_data" / "earnings" / "earnings_velocity_log.csv"
 
-print("Reading dataset from:", input_path)
+# -------------------------------------------------
+# LOAD DATA
+# -------------------------------------------------
 
-df = pd.read_csv(input_path)
+trips = pd.read_csv(TRIPS_PATH)
 
-# ---------------------------------------------------
-# TIMESTAMP FIX
-# ---------------------------------------------------
+trips["start_dt"] = pd.to_datetime(trips["date"] + " " + trips["start_time"])
+trips["end_dt"] = pd.to_datetime(trips["date"] + " " + trips["end_time"])
 
-df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+# sort trips globally
+trips = trips.sort_values(["driver_id", "end_dt"])
 
-# ---------------------------------------------------
-# GENERATE ADDITIONAL VELOCITY LOGS
-# ---------------------------------------------------
+velocity_rows = []
+log_counter = 1
 
-new_rows = []
+# -------------------------------------------------
+# PROCESS DRIVER BY DRIVER
+# -------------------------------------------------
 
-for driver in df["driver_id"].unique():
+for driver, df in trips.groupby("driver_id"):
 
-    driver_df = df[df["driver_id"] == driver].sort_values("timestamp")
+    df = df.sort_values("end_dt")
 
-    # required minimum datapoints per driver
-    target_points = 3
-    if driver == "DRV004":
-        target_points = 6
+    cumulative = 0
+    trips_completed = 0
+    first_trip_time = df.iloc[0]["start_dt"]
 
-    current_points = len(driver_df)
+    previous_end = None
 
-    if current_points >= target_points:
-        continue
+    for _, trip in df.iterrows():
 
-    last_row = driver_df.iloc[-1]
+        trips_completed += 1
+        cumulative += trip["fare"]
 
-    last_time = last_row["timestamp"]
-    cumulative = last_row["cumulative_earnings"]
-    velocity = last_row["current_velocity"]
-    trips = last_row["trips_completed"]
+        timestamp = trip["end_dt"]
 
-    for _ in range(target_points - current_points):
+        elapsed_hours = (timestamp - first_trip_time).total_seconds() / 3600
 
-        # simulate next timestamp
-        last_time = last_time + timedelta(minutes=np.random.randint(5, 20))
+        elapsed_hours = max(elapsed_hours, 0.5)
 
-        # simulate velocity fluctuation
-        change = np.random.randint(-80, 80)
-        velocity = max(30, velocity + change)
+        current_velocity = cumulative / elapsed_hours
 
-        target_velocity = last_row["target_velocity"]
+        target_velocity = random.randint(170, 200)
 
-        delta = velocity - target_velocity
+        velocity_delta = current_velocity - target_velocity
 
-        # simulate earnings growth
-        cumulative += np.random.randint(80, 250)
+        if velocity_delta > 40:
+            forecast_status = "ahead"
+        elif velocity_delta < -40:
+            forecast_status = "at_risk"
+        else:
+            forecast_status = "on_track"
 
-        # simulate additional trip
-        trips += 1
-
-        # determine driver performance status
-        status = "on_track"
-
-        if delta > 40:
-            status = "ahead"
-
-        elif delta < -40:
-            status = "at_risk"
-
-        new_rows.append({
-            "log_id": "VEL" + str(uuid.uuid4())[:6],
+        velocity_rows.append({
+            "log_id": f"VEL{log_counter:03}",
             "driver_id": driver,
-            "date": last_time.date(),
-            "timestamp": last_time,
-            "cumulative_earnings": cumulative,
-            "elapsed_hours": last_row["elapsed_hours"] + np.random.uniform(0.3, 0.8),
-            "current_velocity": round(velocity, 2),
+            "date": trip["date"],
+            "timestamp": timestamp.strftime("%H:%M:%S"),
+            "cumulative_earnings": round(cumulative,2),
+            "elapsed_hours": round(elapsed_hours,2),
+            "current_velocity": round(current_velocity,2),
             "target_velocity": target_velocity,
-            "velocity_delta": round(delta, 2),
-            "trips_completed": trips,
-            "forecast_status": status
+            "velocity_delta": round(velocity_delta,2),
+            "trips_completed": trips_completed,
+            "forecast_status": forecast_status
         })
 
-# ---------------------------------------------------
-# MERGE ORIGINAL + GENERATED DATA
-# ---------------------------------------------------
+        log_counter += 1
 
-extra_df = pd.DataFrame(new_rows)
+        # -----------------------------------------
+        # ADD RANDOM TELEMETRY BETWEEN TRIPS
+        # -----------------------------------------
 
-final_df = pd.concat([df, extra_df])
+        if previous_end is not None:
 
-final_df = final_df.sort_values(["driver_id", "timestamp"])
+            gap_minutes = (trip["start_dt"] - previous_end).total_seconds() / 60
 
-# ---------------------------------------------------
-# SAVE UPDATED DATASET
-# ---------------------------------------------------
+            if gap_minutes > 10 and random.random() < 0.4:
 
-final_df.to_csv(input_path, index=False)
+                random_time = previous_end + timedelta(
+                    minutes=random.randint(3, int(gap_minutes)-2)
+                )
 
-print("✅ Velocity dataset expanded successfully")
-print("📁 Saved to:", input_path)
+                elapsed_hours_rand = (random_time - first_trip_time).total_seconds()/3600
+
+                velocity_rand = cumulative / max(elapsed_hours_rand,0.5)
+
+                velocity_rows.append({
+                    "log_id": f"VEL{log_counter:03}",
+                    "driver_id": driver,
+                    "date": trip["date"],
+                    "timestamp": random_time.strftime("%H:%M:%S"),
+                    "cumulative_earnings": round(cumulative,2),
+                    "elapsed_hours": round(elapsed_hours_rand,2),
+                    "current_velocity": round(velocity_rand,2),
+                    "target_velocity": target_velocity,
+                    "velocity_delta": round(velocity_rand-target_velocity,2),
+                    "trips_completed": trips_completed,
+                    "forecast_status": random.choice(["ahead","on_track","at_risk"])
+                })
+
+                log_counter += 1
+
+        previous_end = trip["end_dt"]
+
+# -------------------------------------------------
+# FINAL DATASET
+# -------------------------------------------------
+
+velocity_df = pd.DataFrame(velocity_rows)
+
+velocity_df = velocity_df.sort_values(["driver_id","timestamp"])
+
+# -------------------------------------------------
+# SAVE (OVERWRITE SAME FILE)
+# -------------------------------------------------
+
+velocity_df.to_csv(VELOCITY_PATH, index=False)
+
+print("Velocity log regenerated successfully")
+print("Total rows:", len(velocity_df))

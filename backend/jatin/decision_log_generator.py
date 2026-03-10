@@ -93,8 +93,12 @@ def generate_decision_log(fused_features: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == '__main__':
-    data_dir = '../driver_pulse_hackathon_data'
-    output_dir = '../processed_outputs'
+    from pathlib import Path
+
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+    data_dir = BASE_DIR / "driver_pulse_hackathon_data"
+    output_dir = BASE_DIR / "processed_outputs"
     os.makedirs(output_dir, exist_ok=True)
 
     datasets = load_all(data_dir)

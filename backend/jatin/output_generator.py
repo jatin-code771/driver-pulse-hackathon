@@ -299,73 +299,177 @@ def generate_trip_summaries(
     Convert trip_features to hackathon trip_summaries.csv format.
 
     Required Schema: trip_id, driver_id, date, duration_min, distance_km, fare,
-                     earnings_velocity, motion_events_count, audio_events_count,
+                     earnings_velocity, status,
+                     motion_events_count, audio_events_count,
                      flagged_moments_count, max_severity, stress_score,
                      trip_quality_rating
     """
+
     meta_cols = ['trip_id', 'driver_id', 'date', 'duration_min', 'distance_km', 'fare']
     available_meta = [c for c in meta_cols if c in trips_df.columns]
+
     summaries = trips_df[available_meta].copy()
 
-    # Earnings velocity (currency / hour)
-    summaries['earnings_velocity'] = round(
-        summaries['fare'] / (summaries['duration_min'] / 60), 2
-    )
+    # ---------------------------------------------------
+# Compute earnings_velocity + status using modular logic
+# ---------------------------------------------------
 
+    # ---------------------------------------------------
+# Load earnings_velocity + status from final_driver_timeline
+# ---------------------------------------------------
+
+    from pathlib import Path
+
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    timeline_path = BASE_DIR / "processed_outputs" / "final_driver_timeline.csv"
+
+    # Load timeline dataset
+    timeline = pd.read_csv(timeline_path)
+
+    # Ensure timestamp is datetime
+    if "timestamp" in timeline.columns:
+        timeline["timestamp"] = pd.to_datetime(timeline["timestamp"], errors="coerce")
+
+    # Sort and get latest record per driver
+    timeline = timeline.sort_values("timestamp")
+    latest_velocity = timeline.groupby("driver_id").tail(1)
+
+    # Rename column to match hackathon schema
+    if "current_velocity" in latest_velocity.columns:
+        latest_velocity = latest_velocity.rename(
+            columns={"current_velocity": "earnings_velocity"}
+        )
+
+    # Ensure status column exists
+    if "forecast_status" in latest_velocity.columns:
+        latest_velocity = latest_velocity.rename(
+            columns={"forecast_status": "status"}
+        )
+
+    # If any column missing, create fallback
+    if "earnings_velocity" not in latest_velocity.columns:
+        latest_velocity["earnings_velocity"] = np.nan
+
+    if "status" not in latest_velocity.columns:
+        latest_velocity["status"] = "unknown"
+
+    # Merge into trip summaries
+    summaries = summaries.merge(
+        latest_velocity[["driver_id", "earnings_velocity", "status"]],
+        on="driver_id",
+        how="left"
+    )
+    # ---------------------------------------------------
     # Aggregate counts from trip feature matrix
+    # ---------------------------------------------------
+
     tf = trip_features.copy()
+
     tf['motion_events_count'] = (
-        tf['n_harsh_brakes'] + tf['n_harsh_accels'] + tf['n_swerves']
+        tf['n_harsh_brakes'] +
+        tf['n_harsh_accels'] +
+        tf['n_swerves']
     ).astype(int)
+
     tf['audio_events_count'] = (
-        tf['n_noise_spikes'] + tf['n_argument_signals']
+        tf['n_noise_spikes'] +
+        tf['n_argument_signals']
     ).astype(int)
+
     tf['stress_score'] = tf['combined_score_mean'].round(2)
 
     summaries = summaries.merge(
         tf[['trip_id', 'motion_events_count', 'audio_events_count', 'stress_score']],
         on='trip_id',
-        how='left',
+        how='left'
     )
 
-    # Flagged moments count & max severity per trip
+    # ---------------------------------------------------
+    # Flagged moments aggregation
+    # ---------------------------------------------------
+
     sev_order = {'low': 1, 'medium': 2, 'high': 3}
+
     if len(flagged_moments) > 0:
-        flag_counts = flagged_moments.groupby('trip_id')['flag_id'].count().rename('flagged_moments_count')
+
+        flag_counts = flagged_moments.groupby('trip_id')['flag_id'] \
+            .count().rename('flagged_moments_count')
+
         flagged_moments = flagged_moments.copy()
-        flagged_moments['_sev_rank'] = flagged_moments['severity'].map(sev_order).fillna(0)
+
+        flagged_moments['_sev_rank'] = \
+            flagged_moments['severity'].map(sev_order).fillna(0)
+
         max_sev = (
             flagged_moments.sort_values('_sev_rank', ascending=False)
-            .groupby('trip_id')['severity'].first()
+            .groupby('trip_id')['severity']
+            .first()
             .rename('max_severity')
         )
+
         summaries = summaries.merge(flag_counts, on='trip_id', how='left')
         summaries = summaries.merge(max_sev, on='trip_id', how='left')
 
-    summaries['flagged_moments_count'] = summaries.get('flagged_moments_count', 0).fillna(0).astype(int)
-    summaries['max_severity'] = summaries.get('max_severity', 'none').fillna('none')
-    summaries['motion_events_count'] = summaries['motion_events_count'].fillna(0).astype(int)
-    summaries['audio_events_count'] = summaries['audio_events_count'].fillna(0).astype(int)
-    summaries['stress_score'] = summaries['stress_score'].fillna(0).round(2)
+    summaries['flagged_moments_count'] = summaries.get(
+        'flagged_moments_count', 0
+    ).fillna(0).astype(int)
 
+    summaries['max_severity'] = summaries.get(
+        'max_severity', 'none'
+    ).fillna('none')
+
+    summaries['motion_events_count'] = summaries['motion_events_count'] \
+        .fillna(0).astype(int)
+
+    summaries['audio_events_count'] = summaries['audio_events_count'] \
+        .fillna(0).astype(int)
+
+    summaries['stress_score'] = summaries['stress_score'] \
+        .fillna(0).round(2)
+
+    # ---------------------------------------------------
     # Trip quality rating
+    # ---------------------------------------------------
+
     def quality_rating(score):
+
         if pd.isna(score) or score < 0.3:
             return 'excellent'
+
         if score < 0.5:
             return 'good'
+
         if score < 0.7:
             return 'fair'
+
         return 'poor'
 
-    summaries['trip_quality_rating'] = summaries['stress_score'].apply(quality_rating)
+    summaries['trip_quality_rating'] = summaries['stress_score'] \
+        .apply(quality_rating)
+
+    # ---------------------------------------------------
+    # Final output columns
+    # ---------------------------------------------------
 
     output_cols = [
-        'trip_id', 'driver_id', 'date', 'duration_min', 'distance_km', 'fare',
-        'earnings_velocity', 'motion_events_count', 'audio_events_count',
-        'flagged_moments_count', 'max_severity', 'stress_score', 'trip_quality_rating',
+        'trip_id',
+        'driver_id',
+        'date',
+        'duration_min',
+        'distance_km',
+        'fare',
+        'earnings_velocity',
+        'status',
+        'motion_events_count',
+        'audio_events_count',
+        'flagged_moments_count',
+        'max_severity',
+        'stress_score',
+        'trip_quality_rating',
     ]
+
     available_cols = [c for c in output_cols if c in summaries.columns]
+
     return summaries[available_cols]
 
 
@@ -373,16 +477,69 @@ def generate_earnings_summary(earnings_features: pd.DataFrame, drivers_df: pd.Da
     """
     Generate earnings velocity summary for dashboard/API.
     """
+
     summary = earnings_features.copy()
-    
-    # Merge with driver info
+
+    # ---------------------------------------------------
+    # Merge driver info
+    # ---------------------------------------------------
+
     summary = summary.merge(
         drivers_df[['driver_id', 'name', 'city']],
         on='driver_id',
         how='left'
     )
-    
-    # Select key columns
+
+    # ---------------------------------------------------
+    # Load predictions (earnings_velocity + status)
+    # ---------------------------------------------------
+
+    from pathlib import Path
+
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    prediction_path = BASE_DIR / "driver_outputs" / "realtime_driver_predictions.csv"
+
+    if prediction_path.exists():
+
+        predictions = pd.read_csv(prediction_path)
+
+        predictions["driver_id"] = predictions["driver_id"].astype(str).str.strip()
+        summary["driver_id"] = summary["driver_id"].astype(str).str.strip()
+
+        # ensure timestamp exists before sorting
+        if "timestamp" in predictions.columns:
+            predictions = predictions.sort_values("timestamp")
+
+        # keep latest prediction per driver
+        predictions = predictions.groupby("driver_id").tail(1)
+
+        # rename velocity column
+        if "current_velocity" in predictions.columns:
+            predictions = predictions.rename(
+                columns={"current_velocity": "earnings_velocity"}
+            )
+
+        # ensure status exists
+        if "status" not in predictions.columns:
+            predictions["status"] = "unknown"
+
+        summary = summary.merge(
+            predictions[["driver_id", "earnings_velocity", "status"]],
+            on="driver_id",
+            how="left"
+        )
+
+    else:
+
+        print("⚠ realtime_driver_predictions.csv not found")
+
+        summary["earnings_velocity"] = np.nan
+        summary["status"] = "unknown"
+
+    # ---------------------------------------------------
+    # Select key columns for output
+    # ---------------------------------------------------
+
     output_cols = [
         'driver_id',
         'name',
@@ -399,12 +556,14 @@ def generate_earnings_summary(earnings_features: pd.DataFrame, drivers_df: pd.Da
         'projected_earnings',
         'projected_completion_pct',
         'hours_elapsed',
-        'hours_remaining'
+        'hours_remaining',
+        'status'
     ]
-    
+
     available_cols = [col for col in output_cols if col in summary.columns]
+
     output = summary[available_cols]
-    
+
     return output
 
 
@@ -417,13 +576,26 @@ def main():
     print()
     
     # Create output directory
-    output_dir = '../processed_outputs'
+    from pathlib import Path
+
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    output_dir = BASE_DIR / "driver_outputs"
     os.makedirs(output_dir, exist_ok=True)
     
     # Step 1: Load raw data
     print("[1/7] Loading raw data...")
-    data_dir = "../driver_pulse_hackathon_data"
-    datasets = load_all(data_dir)
+    from pathlib import Path
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    processed_dir = BASE_DIR / "processed_outputs"
+
+    datasets = {
+        "accelerometer": pd.read_csv(processed_dir / "accelerometer_preprocessed.csv"),
+        "audio": pd.read_csv(processed_dir / "audio_preprocessed.csv"),
+        "trips": pd.read_csv(processed_dir / "cleaned_trips.csv"),
+        "drivers": pd.read_csv(processed_dir / "cleaned_drivers.csv"),
+        "earnings": pd.read_csv(processed_dir / "cleaned_velocity_log.csv")
+    }
+
     print(f"   ✓ Loaded {len(datasets['accelerometer'])} accelerometer readings")
     print(f"   ✓ Loaded {len(datasets['audio'])} audio readings")
     print(f"   ✓ Loaded {len(datasets['trips'])} trips")
@@ -434,12 +606,11 @@ def main():
     features = build_all_features(datasets)
     print(f"   ✓ Generated {len(features['fused_features'])} fused feature rows")
     print(f"   ✓ Generated {len(features['trip_features'])} trip summaries")
-    print(f"   ✓ Generated {len(features['earnings_features'])} earnings forecasts")
     
     # Step 3: Generate flagged moments
     print("\n[3/7] Generating flagged_moments.csv...")
     flagged_moments = generate_flagged_moments(features['fused_features'], datasets['trips'])
-    output_path = os.path.join(output_dir, 'flagged_moments.csv')
+    output_path = output_dir / "flagged_moments.csv"
     flagged_moments.to_csv(output_path, index=False)
     print(f"   ✓ Generated {len(flagged_moments)} flagged moments")
     print(f"   📂 Saved to: {output_path}")
@@ -447,29 +618,29 @@ def main():
     # Step 4: Generate trip summaries
     print("\n[4/7] Generating trip_summaries.csv...")
     trip_summaries = generate_trip_summaries(features['trip_features'], datasets['trips'], flagged_moments)
-    output_path = os.path.join(output_dir, 'trip_summaries.csv')
+    output_path = output_dir / "trip_summaries.csv"
     trip_summaries.to_csv(output_path, index=False)
     print(f"   ✓ Generated {len(trip_summaries)} trip summaries")
     print(f"   📂 Saved to: {output_path}")
     
     # Step 5: Generate earnings summary
     print("\n[5/7] Generating earnings_velocity.csv...")
-    earnings_summary = generate_earnings_summary(features['earnings_features'], datasets['drivers'])
-    output_path = os.path.join(output_dir, 'earnings_velocity.csv')
+    earnings_summary = pd.read_csv(processed_dir / "cleaned_velocity_log.csv")
+    output_path = output_dir / "earnings_velocity.csv"
     earnings_summary.to_csv(output_path, index=False)
     print(f"   ✓ Generated {len(earnings_summary)} earnings records")
     print(f"   📂 Saved to: {output_path}")
     
     # Step 6: Save full preprocessed accelerometer data
     print("\n[6/7] Saving preprocessed accelerometer data...")
-    output_path = os.path.join(output_dir, 'accelerometer_preprocessed.csv')
+    output_path = output_dir / "accelerometer_preprocessed.csv"
     features['fused_features'].to_csv(output_path, index=False)
     print(f"   ✓ Saved {len(features['fused_features'])} preprocessed rows")
     print(f"   📂 Saved to: {output_path}")
     
     # Step 7: Save preprocessed audio data
     print("\n[7/7] Saving preprocessed audio data...")
-    output_path = os.path.join(output_dir, 'audio_preprocessed.csv')
+    output_path = output_dir / "audio_preprocessed.csv"
     features['aud_features'].to_csv(output_path, index=False)
     print(f"   ✓ Saved {len(features['aud_features'])} preprocessed rows")
     print(f"   📂 Saved to: {output_path}")

@@ -1,283 +1,312 @@
+"""
+preprocess_trips.py
+-------------------
+Cleans and prepares the trips dataset.
+
+Steps:
+- Schema validation
+- Remove duplicates
+- Handle missing trip IDs
+- Fix missing timestamps
+- Handle missing distance & fare
+- Feature engineering
+- Data integrity checks
+"""
+
+import sys
+from pathlib import Path
 import pandas as pd
 import numpy as np
-from pathlib import Path
-
-# =========================================================
-# PATH CONFIGURATION
-# =========================================================
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-input_path = BASE_DIR / "driver_pulse_hackathon_data" / "trips" / "trips.csv"
-
-output_path = BASE_DIR / "processed_outputs" / "cleaned_trips.csv"
-
-print("Reading dataset from:", input_path)
-
-df = pd.read_csv(input_path)
-
-print("Initial dataset shape:", df.shape)
 
 
-# =========================================================
-# SCHEMA VALIDATION
-# =========================================================
+# -----------------------------------------------------
+# FIX MODULE PATH
+# -----------------------------------------------------
 
-required_columns = [
-    "trip_id","driver_id","date","start_time","end_time",
-    "duration_min","distance_km","fare","surge_multiplier",
-    "pickup_location","dropoff_location","trip_status"
-]
-
-missing_cols = [c for c in required_columns if c not in df.columns]
-
-if missing_cols:
-    raise ValueError(f"Dataset missing required columns: {missing_cols}")
-
-print("Schema validation passed")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(ROOT_DIR))
 
 
-# =========================================================
-# REMOVE DUPLICATES
-# =========================================================
+# -----------------------------------------------------
+# MAIN PREPROCESS FUNCTION
+# -----------------------------------------------------
 
-df = df.drop_duplicates(subset=["trip_id"])
+def preprocess_trips(df: pd.DataFrame) -> pd.DataFrame:
+
+    print("\nStarting trips preprocessing...")
+    print("Initial dataset shape:", df.shape)
+
+    # -------------------------------------------------
+    # SCHEMA VALIDATION
+    # -------------------------------------------------
+
+    required_columns = [
+        "trip_id","driver_id","date","start_time","end_time",
+        "duration_min","distance_km","fare","surge_multiplier",
+        "pickup_location","dropoff_location","trip_status"
+    ]
+
+    missing_cols = [c for c in required_columns if c not in df.columns]
+
+    if missing_cols:
+        raise ValueError(f"Dataset missing required columns: {missing_cols}")
+
+    print("Schema validation passed")
+
+    # -------------------------------------------------
+    # REMOVE DUPLICATES
+    # -------------------------------------------------
+
+    df = df.drop_duplicates(subset=["trip_id"])
+
+    # -------------------------------------------------
+    # HANDLE MISSING TRIP IDS
+    # -------------------------------------------------
+
+    def fill_trip_ids(group):
+
+        group = group.sort_values(by=["date","start_time"], na_position="last")
+
+        trip_numbers = (
+            group["trip_id"]
+            .dropna()
+            .str.extract(r'(\d+)')
+            .astype(float)
+        )
+
+        max_id = trip_numbers.max().values[0] if not trip_numbers.empty else 0
+
+        counter = int(max_id)
+
+        for idx,row in group.iterrows():
+
+            if pd.isna(row["trip_id"]):
+
+                counter += 1
+                group.at[idx,"trip_id"] = f"TRIP{str(counter).zfill(4)}"
+
+        return group
 
 
-# =========================================================
-# HANDLE MISSING TRIP IDS
-# =========================================================
+    if df["trip_id"].isna().any():
 
-def fill_trip_ids(group):
+        print("Missing trip_ids detected")
 
-    group = group.sort_values(by=["date","start_time"], na_position="last")
+        df = df.groupby("driver_id", group_keys=False).apply(fill_trip_ids)
 
-    trip_numbers = (
-        group["trip_id"]
-        .dropna()
-        .str.extract(r'(\d+)')
-        .astype(float)
+    # -------------------------------------------------
+    # HANDLE TEXT MISSING VALUES
+    # -------------------------------------------------
+
+    text_cols = ["pickup_location","dropoff_location","trip_status"]
+
+    for col in text_cols:
+
+        if df[col].isna().any():
+
+            mode_val = df[col].mode()[0]
+
+            print(f"Filling missing {col} with mode:", mode_val)
+
+            df[col] = df[col].fillna(mode_val)
+
+    # -------------------------------------------------
+    # SURGE MULTIPLIER
+    # -------------------------------------------------
+
+    df["surge_multiplier"] = df["surge_multiplier"].fillna(1)
+
+    # -------------------------------------------------
+    # CONVERT DATE & TIME
+    # -------------------------------------------------
+
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+
+    df["start_time"] = pd.to_datetime(
+        df["date"].astype(str) + " " + df["start_time"].astype(str),
+        errors="coerce"
     )
 
-    max_id = trip_numbers.max().values[0] if not trip_numbers.empty else 0
+    df["end_time"] = pd.to_datetime(
+        df["date"].astype(str) + " " + df["end_time"].astype(str),
+        errors="coerce"
+    )
 
-    counter = int(max_id)
+    # -------------------------------------------------
+    # FIX MISSING START / END TIMES
+    # -------------------------------------------------
 
-    for idx,row in group.iterrows():
+    duration_td = pd.to_timedelta(df["duration_min"], unit="m")
 
-        if pd.isna(row["trip_id"]):
+    mask_start_missing = df["start_time"].isna() & df["end_time"].notna()
 
-            counter += 1
-            group.at[idx,"trip_id"] = f"TRIP{str(counter).zfill(4)}"
+    df.loc[mask_start_missing,"start_time"] = (
+        df.loc[mask_start_missing,"end_time"] - duration_td[mask_start_missing]
+    )
 
-    return group
+    mask_end_missing = df["end_time"].isna() & df["start_time"].notna()
 
+    df.loc[mask_end_missing,"end_time"] = (
+        df.loc[mask_end_missing,"start_time"] + duration_td[mask_end_missing]
+    )
 
-if df["trip_id"].isna().any():
+    # -------------------------------------------------
+    # FIX START > END EDGE CASE
+    # -------------------------------------------------
 
-    print("Missing trip_ids detected")
+    print("Fixing invalid trips")
 
-    df = df.groupby("driver_id", group_keys=False).apply(fill_trip_ids)
+    df["duration_td"] = pd.to_timedelta(df["duration_min"], unit="m")
 
+    df = df.sort_values(["driver_id","start_time"])
 
-# =========================================================
-# HANDLE TEXT MISSING VALUES
-# =========================================================
+    previous_end = {}
 
-text_cols = ["pickup_location","dropoff_location","trip_status"]
+    for i,row in df.iterrows():
 
-for col in text_cols:
+        driver = row["driver_id"]
 
-    if df[col].isna().any():
+        start = row["start_time"]
+        end = row["end_time"]
+        duration = row["duration_td"]
 
-        mode_val = df[col].mode()[0]
+        if pd.isna(start) or pd.isna(end):
+            continue
 
-        print(f"Filling missing {col} with mode:", mode_val)
+        if start > end:
 
-        df[col] = df[col].fillna(mode_val)
+            candidate_start = end - duration
 
+            prev_end = previous_end.get(driver)
 
-# =========================================================
-# SURGE MULTIPLIER
-# =========================================================
+            if prev_end is None or candidate_start >= prev_end:
+                df.at[i,"start_time"] = candidate_start
+            else:
+                df.at[i,"end_time"] = start + duration
 
-df["surge_multiplier"] = df["surge_multiplier"].fillna(1)
+        previous_end[driver] = df.at[i,"end_time"]
 
+    # -------------------------------------------------
+    # HANDLE DISTANCE & FARE MISSING
+    # -------------------------------------------------
 
-# =========================================================
-# CONVERT DATE & TIME
-# =========================================================
+    valid = df[
+        (df["fare"].notna()) &
+        (df["distance_km"].notna()) &
+        (df["distance_km"] > 0)
+    ]
 
-df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    avg_fare_per_km = (valid["fare"] / valid["distance_km"]).mean()
 
-df["start_time"] = pd.to_datetime(
-    df["date"].astype(str) + " " + df["start_time"].astype(str),
-    errors="coerce"
-)
+    route_distance = (
+        df.groupby(["pickup_location","dropoff_location"])["distance_km"]
+        .mean()
+    )
 
-df["end_time"] = pd.to_datetime(
-    df["date"].astype(str) + " " + df["end_time"].astype(str),
-    errors="coerce"
-)
+    route_fare = (
+        df.groupby(["pickup_location","dropoff_location"])["fare"]
+        .mean()
+    )
 
+    for idx,row in df[df["distance_km"].isna()].iterrows():
 
-# =========================================================
-# FIX MISSING START / END TIMES
-# =========================================================
+        route = (row["pickup_location"], row["dropoff_location"])
 
-duration_td = pd.to_timedelta(df["duration_min"], unit="m")
+        if route in route_distance:
 
-mask_start_missing = df["start_time"].isna() & df["end_time"].notna()
+            df.at[idx,"distance_km"] = route_distance[route]
 
-df.loc[mask_start_missing,"start_time"] = (
-    df.loc[mask_start_missing,"end_time"] - duration_td[mask_start_missing]
-)
+        elif pd.notna(row["fare"]):
 
-mask_end_missing = df["end_time"].isna() & df["start_time"].notna()
+            df.at[idx,"distance_km"] = row["fare"] / avg_fare_per_km
 
-df.loc[mask_end_missing,"end_time"] = (
-    df.loc[mask_end_missing,"start_time"] + duration_td[mask_end_missing]
-)
 
+    for idx,row in df[df["fare"].isna()].iterrows():
 
-# =========================================================
-# FIX START > END EDGE CASE
-# =========================================================
+        route = (row["pickup_location"], row["dropoff_location"])
 
-print("Fixing invalid trips")
+        if route in route_fare:
 
-df["duration_td"] = pd.to_timedelta(df["duration_min"], unit="m")
+            df.at[idx,"fare"] = route_fare[route]
 
-df = df.sort_values(["driver_id","start_time"])
+        elif pd.notna(row["distance_km"]):
 
-previous_end = {}
+            df.at[idx,"fare"] = row["distance_km"] * avg_fare_per_km
 
-for i,row in df.iterrows():
+    # -------------------------------------------------
+    # FEATURE ENGINEERING
+    # -------------------------------------------------
 
-    driver = row["driver_id"]
+    df["duration_hours"] = df["duration_min"] / 60
 
-    start = row["start_time"]
-    end = row["end_time"]
-    duration = row["duration_td"]
+    # -------------------------------------------------
+    # DROP REDUNDANT COLUMNS
+    # -------------------------------------------------
 
-    if pd.isna(start) or pd.isna(end):
-        continue
+    df.drop(columns=["duration_min","duration_td"], inplace=True)
 
-    if start > end:
+    # -------------------------------------------------
+    # FIX DATA TYPES
+    # -------------------------------------------------
 
-        candidate_start = end - duration
+    float_cols = [
+        "distance_km",
+        "fare",
+        "surge_multiplier",
+        "duration_hours"
+    ]
 
-        prev_end = previous_end.get(driver)
+    df[float_cols] = df[float_cols].astype(float).round(2)
 
-        if prev_end is None or candidate_start >= prev_end:
-            df.at[i,"start_time"] = candidate_start
-        else:
-            df.at[i,"end_time"] = start + duration
+    # -------------------------------------------------
+    # FINAL SORT
+    # -------------------------------------------------
 
-    previous_end[driver] = df.at[i,"end_time"]
+    df = df.sort_values(["driver_id","start_time"]).reset_index(drop=True)
 
+    # -------------------------------------------------
+    # DATA HEALTH REPORT
+    # -------------------------------------------------
 
-# =========================================================
-# HANDLE DISTANCE & FARE MISSING
-# =========================================================
+    print("\nTrips Dataset Health Report")
 
-valid = df[
-    (df["fare"].notna()) &
-    (df["distance_km"].notna()) &
-    (df["distance_km"] > 0)
-]
+    print("Total trips:", len(df))
+    print("Unique drivers:", df["driver_id"].nunique())
 
-avg_fare_per_km = (valid["fare"] / valid["distance_km"]).mean()
+    print("\nTrips preprocessing completed successfully.")
 
-route_distance = (
-    df.groupby(["pickup_location","dropoff_location"])["distance_km"]
-    .mean()
-)
+    return df
 
-route_fare = (
-    df.groupby(["pickup_location","dropoff_location"])["fare"]
-    .mean()
-)
 
+# -----------------------------------------------------
+# SAVE FUNCTION
+# -----------------------------------------------------
 
-for idx,row in df[df["distance_km"].isna()].iterrows():
+def save_cleaned_trips(df: pd.DataFrame, output_path: Path):
 
-    route = (row["pickup_location"], row["dropoff_location"])
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if route in route_distance:
+    df.to_csv(output_path,index=False)
 
-        df.at[idx,"distance_km"] = route_distance[route]
+    print("\nClean dataset saved to:", output_path)
 
-    elif pd.notna(row["fare"]):
 
-        df.at[idx,"distance_km"] = row["fare"] / avg_fare_per_km
+# -----------------------------------------------------
+# RUN FILE DIRECTLY (TEST MODE)
+# -----------------------------------------------------
 
+if __name__ == "__main__":
 
-for idx,row in df[df["fare"].isna()].iterrows():
+    from jatin.data_ingestion import load_all
 
-    route = (row["pickup_location"], row["dropoff_location"])
+    BASE_DIR = Path(__file__).resolve().parent.parent
 
-    if route in route_fare:
+    datasets = load_all(BASE_DIR / "driver_pulse_hackathon_data")
 
-        df.at[idx,"fare"] = route_fare[route]
+    trips_df = datasets["trips"]
 
-    elif pd.notna(row["distance_km"]):
+    cleaned_df = preprocess_trips(trips_df)
 
-        df.at[idx,"fare"] = row["distance_km"] * avg_fare_per_km
+    save_path = BASE_DIR / "processed_outputs" / "cleaned_trips.csv"
 
-
-# =========================================================
-# FEATURE ENGINEERING
-# =========================================================
-
-df["duration_hours"] = df["duration_min"] / 60
-
-
-# =========================================================
-# DROP REDUNDANT COLUMNS
-# =========================================================
-
-df.drop(columns=["duration_min","duration_td"], inplace=True)
-
-
-# =========================================================
-# FIX DATA TYPES
-# =========================================================
-
-float_cols = [
-    "distance_km",
-    "fare",
-    "surge_multiplier",
-    "duration_hours"
-]
-
-df[float_cols] = df[float_cols].astype(float).round(2)
-
-
-# =========================================================
-# FINAL SORT
-# =========================================================
-
-df = df.sort_values(["driver_id","start_time"]).reset_index(drop=True)
-
-
-# =========================================================
-# DATA HEALTH REPORT
-# =========================================================
-
-print("\nTrips Dataset Health Report")
-
-print("Total trips:", len(df))
-print("Unique drivers:", df["driver_id"].nunique())
-
-
-# =========================================================
-# SAVE DATASET
-# =========================================================
-
-output_path.parent.mkdir(parents=True, exist_ok=True)
-
-df.to_csv(output_path,index=False)
-
-print("\nClean dataset saved to:", output_path)
-print("Trips preprocessing completed successfully.")
+    save_cleaned_trips(cleaned_df, save_path)

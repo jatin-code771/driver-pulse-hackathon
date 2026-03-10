@@ -1,160 +1,219 @@
-import pandas as pd
+"""
+preprocess_driver_goals.py
+--------------------------
+Cleans and prepares the driver_goals dataset.
+
+Steps performed:
+- Remove duplicates
+- Handle missing values
+- Fix negative values
+- Convert datatypes
+- Validate earnings velocity
+- Standardize column names
+- Save cleaned dataset
+"""
+import sys
 from pathlib import Path
 
-# ---------------------------------------
-# PATH CONFIGURATION
-# ---------------------------------------
+# Fix module path
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(ROOT_DIR))
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+import pandas as pd
+from jatin.data_ingestion import load_all
 
-input_path = BASE_DIR / "driver_pulse_hackathon_data" / "earnings" / "driver_goals.csv"
+# ---------------------------------------------------
+# MAIN PREPROCESSING FUNCTION
+# ---------------------------------------------------
 
-output_path = BASE_DIR / "processed_outputs" / "cleaned_driver_goals.csv"
+def preprocess_driver_goals(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean the driver_goals dataset.
 
-print("📂 Loading dataset from:", input_path)
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Raw driver_goals dataset
 
-df = pd.read_csv(input_path)
+    Returns
+    -------
+    pd.DataFrame
+        Cleaned dataset
+    """
 
-print("Initial dataset shape:", df.shape)
+    print("\nStarting driver goals preprocessing...")
+    print("Initial dataset shape:", df.shape)
 
-# ---------------------------------------
-# REMOVE DUPLICATES
-# ---------------------------------------
+    # ---------------------------------------------------
+    # REMOVE DUPLICATES
+    # ---------------------------------------------------
 
-duplicate_rows = df.duplicated().sum()
+    duplicate_rows = df.duplicated().sum()
+    print("Duplicate rows found:", duplicate_rows)
 
-print("Duplicate rows found:", duplicate_rows)
+    if duplicate_rows > 0:
+        df = df.drop_duplicates()
 
-if duplicate_rows > 0:
-    df = df.drop_duplicates()
+    # ---------------------------------------------------
+    # HANDLE MISSING VALUES
+    # ---------------------------------------------------
 
-# ---------------------------------------
-# HANDLE MISSING VALUES
-# ---------------------------------------
+    print("\nMissing values per column:")
+    print(df.isnull().sum())
 
-print("\nMissing values per column:")
-print(df.isnull().sum())
+    # Fill date with most common value
+    if "date" in df.columns and df["date"].isnull().sum() > 0:
+        most_common_date = df["date"].mode()[0]
+        df["date"] = df["date"].fillna(most_common_date)
 
-# Fill date with most common date
-if df["date"].isnull().sum() > 0:
-    most_common_date = df["date"].mode()[0]
-    df["date"] = df["date"].fillna(most_common_date)
+    numeric_cols = [
+        "target_earnings",
+        "target_hours",
+        "current_earnings",
+        "current_hours",
+        "earnings_velocity"
+    ]
 
-# Numeric columns
-numeric_cols = [
-    "target_earnings",
-    "target_hours",
-    "current_earnings",
-    "current_hours",
-    "earnings_velocity"
-]
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = df[col].fillna(0)
 
-for col in numeric_cols:
-    df[col] = df[col].fillna(0)
+    # Categorical columns
+    if "status" in df.columns:
+        df["status"] = df["status"].fillna(df["status"].mode()[0])
 
-# Categorical columns
-df["status"] = df["status"].fillna(df["status"].mode()[0])
-df["goal_completion_forecast"] = df["goal_completion_forecast"].fillna(
-    df["goal_completion_forecast"].mode()[0]
-)
+    if "goal_completion_forecast" in df.columns:
+        df["goal_completion_forecast"] = df[
+            "goal_completion_forecast"
+        ].fillna(df["goal_completion_forecast"].mode()[0])
 
-# ---------------------------------------
-# FIX NEGATIVE VALUES
-# ---------------------------------------
+    # ---------------------------------------------------
+    # FIX NEGATIVE VALUES
+    # ---------------------------------------------------
 
-for col in numeric_cols:
+    for col in numeric_cols:
 
-    negatives = (df[col] < 0).sum()
+        if col in df.columns:
 
-    if negatives > 0:
-        print(f"Fixing {negatives} negative values in column: {col}")
-        df.loc[df[col] < 0, col] = 0
+            negatives = (df[col] < 0).sum()
 
-# ---------------------------------------
-# DATATYPE CONVERSION
-# ---------------------------------------
+            if negatives > 0:
+                print(f"Fixing {negatives} negative values in column: {col}")
+                df.loc[df[col] < 0, col] = 0
 
-df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    # ---------------------------------------------------
+    # DATATYPE CONVERSION
+    # ---------------------------------------------------
 
-df["shift_start_time"] = pd.to_datetime(
-    df["shift_start_time"], errors="coerce"
-).dt.time
+    if "date" in df.columns:
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
-df["shift_end_time"] = pd.to_datetime(
-    df["shift_end_time"], errors="coerce"
-).dt.time
+    if "shift_start_time" in df.columns:
+        df["shift_start_time"] = pd.to_datetime(
+            df["shift_start_time"], errors="coerce"
+        ).dt.time
 
-# ---------------------------------------
-# VALIDATE EARNING VELOCITY
-# ---------------------------------------
+    if "shift_end_time" in df.columns:
+        df["shift_end_time"] = pd.to_datetime(
+            df["shift_end_time"], errors="coerce"
+        ).dt.time
 
-safe_hours = df["current_hours"].replace(0, pd.NA)
+    # ---------------------------------------------------
+    # VALIDATE EARNINGS VELOCITY
+    # ---------------------------------------------------
 
-df["calculated_velocity"] = df["current_earnings"] / safe_hours
+    if {"current_earnings", "current_hours", "earnings_velocity"}.issubset(df.columns):
 
-velocity_error = abs(
-    df["earnings_velocity"] - df["calculated_velocity"]
-) > 0.01
+        safe_hours = df["current_hours"].replace(0, pd.NA)
 
-print("Rows with incorrect velocity:", velocity_error.sum())
+        df["calculated_velocity"] = df["current_earnings"] / safe_hours
 
-df.loc[velocity_error, "earnings_velocity"] = df.loc[
-    velocity_error, "calculated_velocity"
-]
+        velocity_error = abs(
+            df["earnings_velocity"] - df["calculated_velocity"]
+        ) > 0.01
 
-df.drop(columns=["calculated_velocity"], inplace=True)
+        print("Rows with incorrect velocity:", velocity_error.sum())
 
-# ---------------------------------------
-# RENAME DATASET LABELS
-# ---------------------------------------
+        df.loc[velocity_error, "earnings_velocity"] = df.loc[
+            velocity_error, "calculated_velocity"
+        ]
 
-df.rename(
-    columns={
+        df.drop(columns=["calculated_velocity"], inplace=True)
+
+    # ---------------------------------------------------
+    # RENAME COLUMNS FOR CLARITY
+    # ---------------------------------------------------
+
+    rename_map = {
         "status": "dataset_status",
         "goal_completion_forecast": "dataset_forecast"
-    },
-    inplace=True
-)
+    }
 
-# Remove redundant velocity column
-df.drop(columns=["earnings_velocity"], inplace=True)
+    df.rename(columns=rename_map, inplace=True)
 
-# ---------------------------------------
-# FINAL COLUMN ORDER
-# ---------------------------------------
+    # Remove redundant velocity column if needed
+    if "earnings_velocity" in df.columns:
+        df.drop(columns=["earnings_velocity"], inplace=True)
 
-columns = [
-    "goal_id",
-    "driver_id",
-    "date",
-    "shift_start_time",
-    "shift_end_time",
-    "target_earnings",
-    "target_hours",
-    "current_earnings",
-    "current_hours",
-    "dataset_status",
-    "dataset_forecast"
-]
+    # ---------------------------------------------------
+    # FINAL COLUMN ORDER
+    # ---------------------------------------------------
 
-df = df[columns]
+    desired_columns = [
+        "goal_id",
+        "driver_id",
+        "date",
+        "shift_start_time",
+        "shift_end_time",
+        "target_earnings",
+        "target_hours",
+        "current_earnings",
+        "current_hours",
+        "dataset_status",
+        "dataset_forecast"
+    ]
 
-# ---------------------------------------
-# FINAL DATASET INFO
-# ---------------------------------------
+    existing_cols = [c for c in desired_columns if c in df.columns]
 
-print("\nFinal dataset shape:", df.shape)
+    df = df[existing_cols]
 
-print("\nColumns:")
-print(df.columns.tolist())
+    print("\nFinal dataset shape:", df.shape)
+    print("Columns:", df.columns.tolist())
 
-# ---------------------------------------
-# SAVE CLEAN DATASET
-# ---------------------------------------
+    print("\nDriver goals preprocessing completed successfully.")
 
-output_path.parent.mkdir(parents=True, exist_ok=True)
+    return df
 
-df.to_csv(output_path, index=False)
 
-print("\n✅ Clean dataset saved to:", output_path)
-print("🚀 Driver goals preprocessing completed successfully.")
+# ---------------------------------------------------
+# OPTIONAL SAVE FUNCTION
+# ---------------------------------------------------
+
+def save_cleaned_driver_goals(df: pd.DataFrame, output_path: Path):
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    df.to_csv(output_path, index=False)
+
+    print("\nClean dataset saved to:", output_path)
+
+
+# ---------------------------------------------------
+# RUN FILE DIRECTLY (FOR TESTING)
+# ---------------------------------------------------
+
+if __name__ == "__main__":
+
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+    from jatin.data_ingestion import load_all
+
+    datasets = load_all(BASE_DIR / "driver_pulse_hackathon_data")
+
+    driver_goals_df = datasets["driver_goals"]
+
+    cleaned_df = preprocess_driver_goals(driver_goals_df)
+
+    save_path = BASE_DIR / "processed_outputs" / "cleaned_driver_goals.csv"
+
+    save_cleaned_driver_goals(cleaned_df, save_path)
