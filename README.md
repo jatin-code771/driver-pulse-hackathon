@@ -1,4 +1,4 @@
-# Driver Pulse: Team jatin-code771
+# Driver Pulse: Team EdgePulse 
 
 Demo Video: [Google Drive Walkthrough](https://drive.google.com/file/d/1yxC8dLirpte5BfJZuqGtbynDpm-iKUoh/view?usp=sharing)
 
