@@ -57,25 +57,18 @@ function App() {
   const [tripsData, setTripsData] = useState([]);
   const [viewMode, setViewMode] = useState("cards"); // "cards" or "table"
 
+  const API_BASE = import.meta.env.VITE_API_URL || "";
+
   useEffect(() => {
-    // Load all three CSVs in parallel
+    // Load all three datasets from API in parallel
     Promise.all([
-      fetch("/flagged_moments_latest.csv").then((r) => r.text()),
-      fetch("/accelerometer_data.csv").then((r) => r.text()),
-      fetch("/trips.csv").then((r) => r.text()),
-    ]).then(([flagsCsv, accelCsv, tripsCsv]) => {
-      Papa.parse(flagsCsv, {
-        header: true,
-        complete: (results) => setData(results.data.filter((r) => r.flag_id)),
-      });
-      Papa.parse(accelCsv, {
-        header: true,
-        complete: (results) => setAccelData(results.data.filter((r) => r.sensor_id)),
-      });
-      Papa.parse(tripsCsv, {
-        header: true,
-        complete: (results) => setTripsData(results.data.filter((r) => r.trip_id)),
-      });
+      fetch(`${API_BASE}/api/flagged-moments`).then((r) => r.json()),
+      fetch(`${API_BASE}/api/accelerometer`).then((r) => r.json()),
+      fetch(`${API_BASE}/api/trips`).then((r) => r.json()),
+    ]).then(([flagsJson, accelJson, tripsJson]) => {
+      setData(flagsJson.filter((r) => r.flag_id));
+      setAccelData(accelJson.filter((r) => r.sensor_id));
+      setTripsData(tripsJson.filter((r) => r.trip_id));
     });
   }, []);
 

@@ -1,13 +1,3 @@
-"""
-output_generator.py
--------------------
-Converts feature engineering outputs to hackathon-required formats:
-- flagged_moments.csv (timestamp, signal_type, raw_value, threshold, event_label)
-- trip_summaries.csv (trip-level report card)
-
-This script bridges your preprocessing work to the hackathon submission format.
-"""
-
 import pandas as pd
 import numpy as np
 import os
@@ -15,30 +5,19 @@ from datetime import datetime
 from feature_engineering import build_all_features
 from data_ingestion import load_all
 
-# Threshold constants (from feature_engineering.py)
 HARSH_BRAKE_THRESHOLD = 2.5
 HARSH_ACCEL_THRESHOLD = 2.5
 AUDIO_SPIKE_THRESHOLD_DB = 85.0
 HIGH_STRESS_THRESHOLD = 0.70
 
-
 def _score_severity(combined_score: float) -> str:
-    """Map combined_score to severity matching reference distribution (~33% each)."""
     if combined_score >= 0.70:
         return "high"
     if combined_score >= 0.55:
         return "medium"
     return "low"
 
-
 def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Convert fused features to hackathon flagged_moments.csv format.
-
-    Required Schema: flag_id, trip_id, driver_id, timestamp, elapsed_seconds,
-                     flag_type, severity, motion_score, audio_score,
-                     combined_score, explanation, context
-    """
     trip_driver = trips_df.set_index('trip_id')['driver_id'].to_dict()
     flagged_rows = []
 
@@ -56,7 +35,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
         accel_mag = row.get('accel_magnitude_smooth', 0)
         audio_db = row.get('audio_level_db_fused', 0)
 
-        # Motion context label
         if has_harsh_brake:
             motion_ctx = "harsh_brake"
         elif has_harsh_accel:
@@ -66,7 +44,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
         else:
             motion_ctx = "normal"
 
-        # Audio context label
         if has_argument:
             audio_ctx = "argument"
         elif has_sustained or (pd.notna(audio_db) and audio_db > 90):
@@ -82,13 +59,10 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
         has_motion_evidence = has_harsh_brake or has_harsh_accel or has_moderate
         dual_sensor = has_audio_evidence and has_motion_evidence
 
-        # ── Determine flag_type ──────────────────────────────
-        # Phase A: Strong-signal priority path (clear binary sensor evidence)
         flag_type = None
         severity = "low"
         explanation = ""
 
-        # A1. conflict_moment: harsh motion + argument signal
         if (has_harsh_brake or has_harsh_accel) and has_argument:
             flag_type = "conflict_moment"
             severity = _score_severity(c_score)
@@ -99,7 +73,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
             else:
                 explanation = f"Combined signal: {verb} ({accel_mag:.1f} m/s²) + audio conflict."
 
-        # A2. harsh_braking: harsh brake/accel (gate by score)
         elif (has_harsh_brake or has_harsh_accel) and c_score >= 0.55:
             flag_type = "harsh_braking"
             severity = _score_severity(c_score)
@@ -109,7 +82,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
             else:
                 explanation = f"Hard acceleration detected ({accel_mag:.1f} m/s² spike)."
 
-        # A3. audio_spike: noise spike or argument (pure audio)
         elif has_noise_spike or has_argument:
             flag_type = "audio_spike"
             severity = _score_severity(c_score)
@@ -118,7 +90,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
             else:
                 explanation = f"Audio spike detected: audio_score={a_score}"
 
-        # A4. sustained_stress: sustained noise + elevated score
         elif has_sustained and c_score >= 0.40:
             flag_type = "sustained_stress"
             severity = _score_severity(c_score)
@@ -127,7 +98,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
             else:
                 explanation = f"Sustained stress detected: motion_score={m_score} audio_score={a_score}"
 
-        # A5. moderate_brake with binary sensor evidence
         elif has_moderate and (c_score >= 0.35 if dual_sensor else c_score >= 0.45):
             flag_type = "moderate_brake"
             severity = _score_severity(c_score)
@@ -136,12 +106,8 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
             else:
                 explanation = f"Moderate motion event ({accel_mag:.1f} m/s²). Normal traffic pattern."
 
-        # Phase B: Score-based fallback classification
-        # Reference flags mostly lack binary sensor triggers — classify by score patterns
         if flag_type is None and c_score >= 0.42:
-            # Gate: need at least moderate motion or non-trivial audio
             if has_moderate or has_motion_evidence or m_score >= 0.42 or a_score >= 0.32:
-                # Classify by score dominance ratio
                 if m_score >= 0.50 and a_score >= 0.50 and c_score >= 0.55:
                     flag_type = "conflict_moment"
                     explanation = f"Event: motion_score={m_score} audio_score={a_score}"
@@ -180,7 +146,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
     df = pd.DataFrame(flagged_rows)
 
     if len(df) > 0:
-        # ── Per-trip selection: keep up to 3 flags per trip, favour type diversity ──
         type_priority = {'conflict_moment': 0, 'audio_spike': 1, 'harsh_braking': 2,
                          'sustained_stress': 3, 'moderate_brake': 4}
         df['_type_pri'] = df['flag_type'].map(type_priority).fillna(5)
@@ -190,7 +155,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
             n = len(group)
             cap = min(2, max(1, n // 2))
             top = group.head(cap)
-            # Ensure diversity of flag types (add up to 1 different type)
             remaining_types = set(group['flag_type']) - set(top['flag_type'])
             added = 0
             for _, r in group.iloc[cap:].iterrows():
@@ -204,7 +168,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
         df = pd.concat(kept, ignore_index=True)
         df = df.drop(columns=['_type_pri'])
 
-        # ── Trip-level fusion: promote to conflict_moment only when score is high enough ──
         motion_types = {'harsh_braking'}
         audio_types = {'audio_spike', 'sustained_stress'}
         for trip_id, group in df.groupby('trip_id'):
@@ -212,7 +175,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
             has_motion_flag = bool(types_present & motion_types)
             has_audio_flag = bool(types_present & audio_types)
             if has_motion_flag and has_audio_flag and 'conflict_moment' not in types_present:
-                # Only promote if the candidate has a high combined score
                 candidates = group[group['combined_score'] >= 0.65]
                 if len(candidates) == 0:
                     continue
@@ -233,8 +195,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
                     f"Combined signal: motion + audio events detected in trip. {old_exp}"
                 )
 
-        # ── Distribution rebalancing: nudge proportions toward reference ──
-        # Reference target proportions
         target_props = {
             'conflict_moment': 0.207,
             'harsh_braking': 0.245,
@@ -244,7 +204,7 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
         }
         total_flags = len(df)
         if total_flags > 20:
-            for _ in range(8):  # iterative passes
+            for _ in range(8):
                 current_counts = df['flag_type'].value_counts()
                 over_types = []
                 under_types = []
@@ -257,20 +217,17 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
                         under_types.append((ft, target_n - actual_n))
                 if not over_types or not under_types:
                     break
-                # Sort: reassign from most-over to most-under
                 over_types.sort(key=lambda x: -x[1])
                 under_types.sort(key=lambda x: -x[1])
                 for over_ft, excess in over_types:
                     if not under_types:
                         break
                     over_rows = df[df['flag_type'] == over_ft].copy()
-                    # Pick borderline rows (lowest combined_score in the over-type)
                     over_rows = over_rows.sort_values('combined_score')
                     to_move = min(int(excess * 0.6) + 1, len(over_rows) // 3)
                     move_idxs = over_rows.head(to_move).index
                     target_ft = under_types[0][0]
                     df.loc[move_idxs, 'flag_type'] = target_ft
-                    # Update under count
                     remaining = under_types[0][1] - to_move
                     if remaining <= 0:
                         under_types.pop(0)
@@ -280,7 +237,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
         df = df.sort_values('timestamp').reset_index(drop=True)
         df['flag_id'] = [f"FLAG{str(i+1).zfill(3)}" for i in range(len(df))]
 
-        # Assign severity via percentile to match reference distribution (~33% each)
         tercile_low = df['combined_score'].quantile(0.29)
         tercile_high = df['combined_score'].quantile(0.72)
         df['severity'] = df['combined_score'].apply(
@@ -288,7 +244,6 @@ def generate_flagged_moments(fused_features: pd.DataFrame, trips_df: pd.DataFram
         )
 
     return df
-
 
 def generate_trip_summaries(
     trip_features: pd.DataFrame,
@@ -472,7 +427,6 @@ def generate_trip_summaries(
 
     return summaries[available_cols]
 
-
 def generate_earnings_summary(earnings_features: pd.DataFrame, drivers_df: pd.DataFrame) -> pd.DataFrame:
     """
     Generate earnings velocity summary for dashboard/API.
@@ -566,23 +520,16 @@ def generate_earnings_summary(earnings_features: pd.DataFrame, drivers_df: pd.Da
 
     return output
 
-
 def main():
-    """Generate all hackathon-required outputs."""
     print("=" * 70)
     print("DRIVER PULSE - HACKATHON OUTPUT GENERATOR")
     print("=" * 70)
     print(f"Execution Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
     
-    # Create output directory
-    from pathlib import Path
-
-    BASE_DIR = Path(__file__).resolve().parent.parent
-    output_dir = BASE_DIR / "driver_outputs"
+    output_dir = '../processed_outputs'
     os.makedirs(output_dir, exist_ok=True)
     
-    # Step 1: Load raw data
     print("[1/7] Loading raw data...")
     from pathlib import Path
     BASE_DIR = Path(__file__).resolve().parent.parent
@@ -601,13 +548,11 @@ def main():
     print(f"   ✓ Loaded {len(datasets['trips'])} trips")
     print(f"   ✓ Loaded {len(datasets['drivers'])} drivers")
     
-    # Step 2: Generate features
     print("\n[2/7] Running feature engineering pipeline...")
     features = build_all_features(datasets)
     print(f"   ✓ Generated {len(features['fused_features'])} fused feature rows")
     print(f"   ✓ Generated {len(features['trip_features'])} trip summaries")
     
-    # Step 3: Generate flagged moments
     print("\n[3/7] Generating flagged_moments.csv...")
     flagged_moments = generate_flagged_moments(features['fused_features'], datasets['trips'])
     output_path = output_dir / "flagged_moments.csv"
@@ -615,7 +560,6 @@ def main():
     print(f"   ✓ Generated {len(flagged_moments)} flagged moments")
     print(f"   📂 Saved to: {output_path}")
     
-    # Step 4: Generate trip summaries
     print("\n[4/7] Generating trip_summaries.csv...")
     trip_summaries = generate_trip_summaries(features['trip_features'], datasets['trips'], flagged_moments)
     output_path = output_dir / "trip_summaries.csv"
@@ -623,7 +567,6 @@ def main():
     print(f"   ✓ Generated {len(trip_summaries)} trip summaries")
     print(f"   📂 Saved to: {output_path}")
     
-    # Step 5: Generate earnings summary
     print("\n[5/7] Generating earnings_velocity.csv...")
     earnings_summary = pd.read_csv(processed_dir / "cleaned_velocity_log.csv")
     output_path = output_dir / "earnings_velocity.csv"
@@ -631,21 +574,18 @@ def main():
     print(f"   ✓ Generated {len(earnings_summary)} earnings records")
     print(f"   📂 Saved to: {output_path}")
     
-    # Step 6: Save full preprocessed accelerometer data
     print("\n[6/7] Saving preprocessed accelerometer data...")
     output_path = output_dir / "accelerometer_preprocessed.csv"
     features['fused_features'].to_csv(output_path, index=False)
     print(f"   ✓ Saved {len(features['fused_features'])} preprocessed rows")
     print(f"   📂 Saved to: {output_path}")
     
-    # Step 7: Save preprocessed audio data
     print("\n[7/7] Saving preprocessed audio data...")
     output_path = output_dir / "audio_preprocessed.csv"
     features['aud_features'].to_csv(output_path, index=False)
     print(f"   ✓ Saved {len(features['aud_features'])} preprocessed rows")
     print(f"   📂 Saved to: {output_path}")
     
-    # Summary statistics
     print("\n" + "=" * 70)
     print("OUTPUT SUMMARY")
     print("=" * 70)
@@ -702,7 +642,6 @@ def main():
     print("   5. Use earnings_velocity.csv for the earnings dashboard")
     print("   6. Preprocessed CSVs contain all normalized/smoothed sensor data")
     print()
-
 
 if __name__ == "__main__":
     try:

@@ -1,10 +1,3 @@
-"""
-data_ingestion.py
------------------
-Loads and validates all raw Driver Pulse datasets.
-Handles type coercion, missing values, and schema validation.
-"""
-
 import pandas as pd
 import numpy as np
 import os
@@ -17,10 +10,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
-# ─────────────────────────────────────────────
-# Schema definitions
-# ─────────────────────────────────────────────
 SCHEMAS = {
     "accelerometer": {
         "required": ["sensor_id", "trip_id", "timestamp", "elapsed_seconds",
@@ -53,7 +42,6 @@ SCHEMAS = {
     },
 }
 
-
 def _validate_schema(df: pd.DataFrame, name: str) -> pd.DataFrame:
     schema = SCHEMAS.get(name, {})
     missing_cols = [c for c in schema.get("required", []) if c not in df.columns]
@@ -64,9 +52,7 @@ def _validate_schema(df: pd.DataFrame, name: str) -> pd.DataFrame:
             df[col] = pd.to_numeric(df[col], errors="coerce")
     return df
 
-
 def load_accelerometer(path: str) -> pd.DataFrame:
-    """Load accelerometer CSV and parse timestamps."""
     df = pd.read_csv(path)
     df = _validate_schema(df, "accelerometer")
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
@@ -78,9 +64,7 @@ def load_accelerometer(path: str) -> pd.DataFrame:
     logger.info(f"[accelerometer] Loaded {len(df)} rows across {df['trip_id'].nunique()} trips.")
     return df
 
-
 def load_audio(path: str) -> pd.DataFrame:
-    """Load audio intensity CSV."""
     df = pd.read_csv(path)
     df = _validate_schema(df, "audio")
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
@@ -89,13 +73,11 @@ def load_audio(path: str) -> pd.DataFrame:
     logger.info(f"[audio] Loaded {len(df)} rows across {df['trip_id'].nunique()} trips.")
     return df
 
-
 def load_trips(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
     df = _validate_schema(df, "trips")
     logger.info(f"[trips] Loaded {len(df)} trips.")
     return df
-
 
 def load_drivers(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
@@ -103,13 +85,11 @@ def load_drivers(path: str) -> pd.DataFrame:
     logger.info(f"[drivers] Loaded {len(df)} driver profiles.")
     return df
 
-
 def load_driver_goals(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
     df = _validate_schema(df, "driver_goals")
     logger.info(f"[driver_goals] Loaded {len(df)} goal records.")
     return df
-
 
 def load_earnings_velocity(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
@@ -119,12 +99,7 @@ def load_earnings_velocity(path: str) -> pd.DataFrame:
     logger.info(f"[earnings_velocity] Loaded {len(df)} velocity checkpoints.")
     return df
 
-
 def load_all(data_dir: str) -> dict:
-    """
-    Load all datasets from the hackathon data directory.
-    Returns a dict keyed by dataset name.
-    """
     base = Path(data_dir)
     datasets = {}
 
@@ -158,7 +133,6 @@ def load_all(data_dir: str) -> dict:
             datasets[name] = pd.DataFrame()
 
     return datasets
-
 
 if __name__ == "__main__":
     import sys

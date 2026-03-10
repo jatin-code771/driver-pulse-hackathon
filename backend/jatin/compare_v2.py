@@ -1,4 +1,3 @@
-"""Compare v2 outputs against hackathon reference data."""
 import pandas as pd
 import numpy as np
 
@@ -22,7 +21,6 @@ for ft in sorted(all_types):
     o = (our_flag['flag_type'] == ft).sum()
     print(f"  {ft:<22} {r:>10} {o:>10}")
 
-# -- Trip overlap --
 ref_trips = set(ref_flag['trip_id'].unique())
 our_trips = set(our_flag['trip_id'].unique())
 overlap = ref_trips & our_trips
@@ -32,7 +30,6 @@ print(f"Overlap trips:                   {len(overlap)}")
 if len(ref_trips) > 0:
     print(f"Trip recall (overlap/ref):       {len(overlap)/len(ref_trips)*100:.1f}%")
 
-# -- Per-trip flag_type match (on overlapping trips) --
 correct = 0
 total_ref = 0
 for trip in overlap:
@@ -44,7 +41,6 @@ for trip in overlap:
 if total_ref > 0:
     print(f"\nFlag-type match (overlap trips): {correct}/{total_ref} = {correct/total_ref*100:.1f}%")
 
-# -- Severity distribution --
 print("\nSeverity distribution:")
 sev_header = f"  {'Severity':<12} {'Reference':>10} {'Ours':>10}"
 print(sev_header)
@@ -53,7 +49,6 @@ for s in ['low', 'medium', 'high']:
     o = (our_flag['severity'] == s).sum()
     print(f"  {s:<12} {r:>10} {o:>10}")
 
-# -- Score comparison (overlap trips) --
 ref_overlap = ref_flag[ref_flag['trip_id'].isin(overlap)]
 our_overlap = our_flag[our_flag['trip_id'].isin(overlap)]
 for col in ['motion_score', 'audio_score', 'combined_score']:
@@ -65,25 +60,21 @@ for col in ['motion_score', 'audio_score', 'combined_score']:
         print(f"  Ours:      {om:.3f}")
         print(f"  Diff:      {abs(rm - om):.3f}")
 
-# -- Overall accuracy estimate --
 print("\n" + "=" * 70)
 print("OVERALL ACCURACY ESTIMATE")
 print("=" * 70)
 
 scores = []
-# 1. Trip coverage
 if len(ref_trips) > 0:
     trip_cov = len(overlap) / len(ref_trips)
     scores.append(('Trip coverage', trip_cov))
     print(f"  Trip coverage:       {trip_cov*100:.1f}%")
 
-# 2. Flag type match
 if total_ref > 0:
     type_match = correct / total_ref
     scores.append(('Flag type match', type_match))
     print(f"  Flag type match:     {type_match*100:.1f}%")
 
-# 3. Score closeness (1 - mean_abs_error for each score)
 for col in ['motion_score', 'audio_score', 'combined_score']:
     if col in ref_overlap.columns and col in our_overlap.columns:
         diff = abs(ref_overlap[col].mean() - our_overlap[col].mean())
@@ -91,15 +82,13 @@ for col in ['motion_score', 'audio_score', 'combined_score']:
         scores.append((f'{col} closeness', closeness))
         print(f"  {col} closeness: {closeness*100:.1f}%")
 
-# -- Severity distribution closeness --
 ref_sev_dist = ref_flag['severity'].value_counts(normalize=True).reindex(['low','medium','high'], fill_value=0)
 our_sev_dist = our_flag['severity'].value_counts(normalize=True).reindex(['low','medium','high'], fill_value=0)
 sev_diff = (ref_sev_dist - our_sev_dist).abs().mean()
-sev_closeness = max(0, 1 - sev_diff * 3)  # scale so 0.33 avg diff = 0%
+sev_closeness = max(0, 1 - sev_diff * 3)
 scores.append(('Severity closeness', sev_closeness))
 print(f"  Severity closeness:  {sev_closeness*100:.1f}%")
 
-# -- Flag type proportion closeness --
 all_ftypes = sorted(set(ref_flag['flag_type'].unique()) | set(our_flag['flag_type'].unique()))
 ref_type_dist = ref_flag['flag_type'].value_counts(normalize=True).reindex(all_ftypes, fill_value=0)
 our_type_dist = our_flag['flag_type'].value_counts(normalize=True).reindex(all_ftypes, fill_value=0)

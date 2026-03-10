@@ -1,0 +1,291 @@
+flag_id,trip_id,driver_id,timestamp,elapsed_seconds,flag_type,severity,motion_score,audio_score,combined_score,explanation,context
+FLAG001,TRIP180,DRV175,2024-02-06 06:02:01,121,harsh_braking,medium,0.97,0.34,0.69,Hard acceleration detected (3.4 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG002,TRIP180,DRV175,2024-02-06 06:09:29,569,conflict_moment,high,0.86,0.66,0.77,Combined signal: motion + audio events detected in trip. Sudden deceleration detected (3.0 m/s² spike). Audio elevated.,Motion: harsh_brake | Audio: very_loud
+FLAG003,TRIP180,DRV175,2024-02-06 06:09:59,599,sustained_stress,medium,0.54,0.66,0.59,Continued elevated audio (75 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG004,TRIP060,DRV175,2024-02-06 06:10:03,603,harsh_braking,medium,1.0,0.33,0.7,Hard acceleration detected (4.3 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG005,TRIP216,DRV012,2024-02-06 06:15:48,228,moderate_brake,low,0.47,0.31,0.4,Moderate motion event (1.7 m/s²) with audio evidence (score=0.31).,Motion: moderate | Audio: normal
+FLAG006,TRIP216,DRV012,2024-02-06 06:19:36,456,sustained_stress,medium,0.58,0.67,0.62,Continued elevated audio (77 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG007,TRIP014,DRV032,2024-02-06 06:32:34,154,moderate_brake,medium,0.71,0.46,0.6,Moderate motion event (2.5 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG008,TRIP072,DRV060,2024-02-06 06:35:50,710,harsh_braking,high,1.0,0.58,0.81,Hard acceleration detected (3.9 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG009,TRIP168,DRV107,2024-02-06 06:41:17,317,moderate_brake,low,0.69,0.3,0.51,Moderate motion event (2.4 m/s²). Normal traffic pattern.,Motion: moderate | Audio: normal
+FLAG010,TRIP048,DRV001,2024-02-06 06:43:51,471,sustained_stress,medium,0.49,0.72,0.59,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG011,TRIP014,DRV032,2024-02-06 06:44:26,866,harsh_braking,medium,0.89,0.46,0.7,Hard acceleration detected (3.1 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG012,TRIP132,DRV170,2024-02-06 06:46:42,1362,sustained_stress,medium,0.68,0.54,0.62,Continued elevated audio (72 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG013,TRIP024,DRV189,2024-02-06 06:50:02,122,audio_spike,medium,0.52,0.78,0.64,Elevated cabin audio (87 dB) detected.,Motion: moderate | Audio: argument
+FLAG014,TRIP014,DRV032,2024-02-06 06:50:35,1235,harsh_braking,medium,0.88,0.46,0.69,Sudden deceleration detected (3.1 m/s² spike). Audio elevated.,Motion: harsh_brake | Audio: normal
+FLAG015,TRIP108,DRV202,2024-02-06 06:52:01,961,harsh_braking,medium,0.75,0.35,0.57,Hard acceleration detected (2.6 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG016,TRIP204,DRV075,2024-02-06 06:53:16,316,moderate_brake,low,0.55,0.34,0.46,Moderate motion event (1.9 m/s²) with audio evidence (score=0.34).,Motion: moderate | Audio: normal
+FLAG017,TRIP108,DRV202,2024-02-06 06:53:25,1045,sustained_stress,medium,0.51,0.66,0.57,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG018,TRIP168,DRV107,2024-02-06 06:54:29,1109,sustained_stress,medium,0.48,0.67,0.57,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG019,TRIP001,DRV107,2024-02-06 06:57:00,720,audio_spike,medium,0.37,0.8,0.56,Elevated cabin audio (86 dB) detected.,Motion: normal | Audio: argument
+FLAG020,TRIP204,DRV075,2024-02-06 06:58:33,633,sustained_stress,high,0.69,0.73,0.71,Continued elevated audio (77 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG021,TRIP001,DRV107,2024-02-06 07:00:42,942,harsh_braking,medium,0.83,0.48,0.67,Hard acceleration detected (2.9 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG022,TRIP084,DRV112,2024-02-06 07:02:05,845,moderate_brake,medium,0.59,0.63,0.61,Moderate motion event (2.1 m/s²) with audio evidence (score=0.63).,Motion: moderate | Audio: elevated
+FLAG023,TRIP024,DRV189,2024-02-06 07:03:59,959,moderate_brake,low,0.6,0.34,0.49,Moderate motion event (2.1 m/s²) with audio evidence (score=0.34).,Motion: moderate | Audio: normal
+FLAG024,TRIP020,DRV157,2024-02-06 07:04:49,289,harsh_braking,low,0.74,0.26,0.53,Event: motion_score=0.74 audio_score=0.26,Motion: harsh_brake | Audio: normal
+FLAG025,TRIP001,DRV107,2024-02-06 07:04:49,1189,audio_spike,medium,0.49,0.72,0.59,Elevated cabin audio (80 dB) detected.,Motion: moderate | Audio: argument
+FLAG026,TRIP015,DRV111,2024-02-06 07:10:58,58,audio_spike,medium,0.41,0.93,0.65,Elevated cabin audio (96 dB) detected.,Motion: normal | Audio: argument
+FLAG027,TRIP020,DRV157,2024-02-06 07:12:26,746,harsh_braking,medium,0.82,0.46,0.66,Hard acceleration detected (2.9 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG028,TRIP024,DRV189,2024-02-06 07:16:21,1701,harsh_braking,high,0.89,0.58,0.75,Hard acceleration detected (3.1 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG029,TRIP002,DRV188,2024-02-06 07:17:47,167,harsh_braking,high,0.98,0.46,0.75,Hard acceleration detected (3.4 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG030,TRIP015,DRV111,2024-02-06 07:17:54,474,audio_spike,medium,0.46,0.75,0.59,Elevated cabin audio (84 dB) detected.,Motion: moderate | Audio: argument
+FLAG031,TRIP157,DRV156,2024-02-06 07:20:53,113,moderate_brake,low,0.48,0.35,0.42,Moderate motion event (1.7 m/s²) with audio evidence (score=0.35).,Motion: moderate | Audio: normal
+FLAG032,TRIP061,DRV148,2024-02-06 07:21:30,870,conflict_moment,low,0.51,0.34,0.43,Continued elevated audio (59 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG033,TRIP157,DRV156,2024-02-06 07:22:46,226,audio_spike,high,0.61,0.96,0.77,Elevated cabin audio (88 dB) detected.,Motion: moderate | Audio: argument
+FLAG034,TRIP002,DRV188,2024-02-06 07:23:00,480,conflict_moment,high,1.0,1.0,1.0,Combined signal: Harsh braking (6.8 m/s²) + sustained high audio (95 dB). Potential argument.,Motion: harsh_brake | Audio: argument
+FLAG035,TRIP002,DRV188,2024-02-06 07:23:00,480,conflict_moment,high,1.0,1.0,1.0,Combined signal: Harsh braking (5.8 m/s²) + sustained high audio (95 dB). Potential argument.,Motion: harsh_brake | Audio: argument
+FLAG036,TRIP037,DRV049,2024-02-06 07:24:27,327,harsh_braking,medium,0.78,0.34,0.58,Hard acceleration detected (2.7 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG037,TRIP015,DRV111,2024-02-06 07:27:11,1031,sustained_stress,low,0.49,0.55,0.51,Continued elevated audio (71 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG038,TRIP037,DRV049,2024-02-06 07:29:55,655,conflict_moment,high,1.0,0.97,0.99,Combined signal: Harsh acceleration (3.7 m/s²) + sustained high audio (96 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG039,TRIP073,DRV031,2024-02-06 07:39:01,481,moderate_brake,low,0.6,0.3,0.47,Moderate motion event (2.1 m/s²). Normal traffic pattern.,Motion: moderate | Audio: normal
+FLAG040,TRIP097,DRV099,2024-02-06 07:40:34,1294,conflict_moment,medium,0.61,0.7,0.65,Combined signal: motion + audio events detected in trip. Continued elevated audio (80 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG041,TRIP097,DRV099,2024-02-06 07:41:04,1324,harsh_braking,high,0.88,0.7,0.8,Hard acceleration detected (3.1 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG042,TRIP049,DRV002,2024-02-06 07:44:08,68,harsh_braking,high,1.0,0.36,0.71,Hard acceleration detected (3.9 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG043,TRIP109,DRV003,2024-02-06 07:49:39,399,harsh_braking,high,1.0,0.55,0.8,Hard acceleration detected (3.9 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG044,TRIP049,DRV002,2024-02-06 07:50:32,452,conflict_moment,high,0.83,0.68,0.76,Combined signal: motion + audio events detected in trip. Sudden deceleration detected (2.9 m/s² spike). Audio elevated.,Motion: harsh_brake | Audio: very_loud
+FLAG045,TRIP049,DRV002,2024-02-06 07:51:02,482,sustained_stress,medium,0.54,0.68,0.6,Continued elevated audio (78 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG046,TRIP169,DRV047,2024-02-06 07:52:16,556,moderate_brake,low,0.53,0.32,0.43,Moderate motion event (1.9 m/s²) with audio evidence (score=0.32).,Motion: moderate | Audio: normal
+FLAG047,TRIP003,DRV003,2024-02-06 08:02:00,600,conflict_moment,low,0.27,0.7,0.46,Continued elevated audio (75 dB) with moderate motion disturbance.,Motion: normal | Audio: very_loud
+FLAG048,TRIP025,DRV188,2024-02-06 08:04:40,580,harsh_braking,medium,0.74,0.58,0.67,Hard acceleration detected (2.6 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG049,TRIP085,DRV133,2024-02-06 08:05:11,611,moderate_brake,low,0.46,0.31,0.39,Moderate motion event (1.6 m/s²) with audio evidence (score=0.31).,Motion: moderate | Audio: normal
+FLAG050,TRIP086,DRV034,2024-02-06 08:09:42,462,audio_spike,medium,0.46,0.86,0.64,Elevated cabin audio (87 dB) detected.,Motion: moderate | Audio: argument
+FLAG051,TRIP086,DRV034,2024-02-06 08:10:12,492,conflict_moment,high,0.73,0.86,0.79,Combined signal: Harsh acceleration (2.6 m/s²) + sustained high audio (87 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG052,TRIP025,DRV188,2024-02-06 08:13:06,1086,conflict_moment,high,0.64,1.0,0.8,Combined signal: motion + audio events detected in trip. Elevated cabin audio (96 dB) detected.,Motion: moderate | Audio: argument
+FLAG053,TRIP085,DRV133,2024-02-06 08:15:23,1223,sustained_stress,medium,0.58,0.73,0.65,Continued elevated audio (79 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG054,TRIP025,DRV188,2024-02-06 08:16:20,1280,audio_spike,high,0.61,1.0,0.78,Elevated cabin audio (96 dB) detected.,Motion: moderate | Audio: argument
+FLAG055,TRIP003,DRV003,2024-02-06 08:16:30,1470,audio_spike,medium,0.47,0.88,0.65,Elevated cabin audio (90 dB) detected.,Motion: moderate | Audio: argument
+FLAG056,TRIP003,DRV003,2024-02-06 08:17:52,1552,audio_spike,medium,0.46,0.9,0.66,Elevated cabin audio (93 dB) detected.,Motion: moderate | Audio: argument
+FLAG057,TRIP145,DRV074,2024-02-06 08:18:56,1436,sustained_stress,medium,0.44,0.76,0.58,Continued elevated audio (81 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG058,TRIP146,DRV039,2024-02-06 08:20:04,1084,moderate_brake,medium,0.53,0.63,0.57,Moderate motion event (1.8 m/s²) with audio evidence (score=0.63).,Motion: moderate | Audio: elevated
+FLAG059,TRIP122,DRV161,2024-02-06 08:24:39,639,conflict_moment,high,0.77,0.82,0.8,Combined signal: Harsh acceleration (2.7 m/s²) + sustained high audio (83 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG060,TRIP026,DRV024,2024-02-06 08:25:36,1416,moderate_brake,medium,0.71,0.45,0.59,Moderate motion event (2.5 m/s²) with audio evidence (score=0.45).,Motion: moderate | Audio: normal
+FLAG061,TRIP026,DRV024,2024-02-06 08:25:56,1436,harsh_braking,medium,0.74,0.45,0.61,Hard acceleration detected (2.6 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG062,TRIP011,DRV112,2024-02-06 08:29:04,1744,moderate_brake,medium,0.62,0.46,0.55,Moderate motion event (2.2 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG063,TRIP011,DRV112,2024-02-06 08:29:24,1764,moderate_brake,medium,0.61,0.46,0.55,Moderate motion event (2.1 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG064,TRIP004,DRV210,2024-02-06 08:30:45,165,moderate_brake,low,0.62,0.3,0.48,Moderate motion event (2.2 m/s²). Normal traffic pattern.,Motion: moderate | Audio: normal
+FLAG065,TRIP026,DRV024,2024-02-06 08:31:57,1797,harsh_braking,medium,0.85,0.46,0.68,Hard acceleration detected (3.0 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG066,TRIP122,DRV161,2024-02-06 08:32:34,1114,audio_spike,high,0.51,1.0,0.73,Elevated cabin audio (97 dB) detected.,Motion: moderate | Audio: argument
+FLAG067,TRIP098,DRV083,2024-02-06 08:33:58,478,conflict_moment,low,0.57,0.29,0.44,Event: motion_score=0.57 audio_score=0.29,Motion: moderate | Audio: normal
+FLAG068,TRIP098,DRV083,2024-02-06 08:34:28,508,harsh_braking,medium,0.8,0.29,0.57,Hard acceleration detected (2.8 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG069,TRIP122,DRV161,2024-02-06 08:37:58,1438,sustained_stress,medium,0.65,0.69,0.67,Continued elevated audio (74 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG070,TRIP098,DRV083,2024-02-06 08:42:49,1009,sustained_stress,medium,0.55,0.56,0.56,Continued elevated audio (74 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG071,TRIP038,DRV088,2024-02-06 08:43:01,1021,conflict_moment,low,0.48,0.36,0.43,Continued elevated audio (59 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG072,TRIP004,DRV210,2024-02-06 08:43:56,956,harsh_braking,high,0.89,0.57,0.75,Hard acceleration detected (3.1 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG073,TRIP004,DRV210,2024-02-06 08:46:17,1097,harsh_braking,medium,0.72,0.57,0.65,Sudden deceleration detected (2.5 m/s² spike). Audio elevated.,Motion: harsh_brake | Audio: very_loud
+FLAG074,TRIP218,DRV205,2024-02-06 08:46:25,1225,sustained_stress,medium,0.65,0.56,0.61,Continued elevated audio (74 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG075,TRIP218,DRV205,2024-02-06 08:46:55,1255,harsh_braking,high,0.91,0.56,0.75,Hard acceleration detected (3.2 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG076,TRIP134,DRV031,2024-02-06 08:48:21,621,sustained_stress,medium,0.43,0.74,0.57,Continued elevated audio (78 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG077,TRIP218,DRV205,2024-02-06 08:50:40,1480,audio_spike,low,0.23,0.65,0.42,Event: motion_score=0.23 audio_score=0.65,Motion: normal | Audio: elevated
+FLAG078,TRIP170,DRV063,2024-02-06 08:56:30,390,harsh_braking,high,1.0,0.63,0.83,Hard acceleration detected (3.8 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG079,TRIP012,DRV042,2024-02-06 09:01:09,669,moderate_brake,medium,0.71,0.62,0.67,Moderate motion event (2.5 m/s²) with audio evidence (score=0.62).,Motion: moderate | Audio: elevated
+FLAG080,TRIP050,DRV170,2024-02-06 09:04:32,872,moderate_brake,medium,0.52,0.63,0.57,Moderate motion event (1.8 m/s²) with audio evidence (score=0.63).,Motion: moderate | Audio: elevated
+FLAG081,TRIP012,DRV042,2024-02-06 09:07:27,1047,conflict_moment,high,0.75,0.99,0.86,Combined signal: Harsh acceleration (2.6 m/s²) + sustained high audio (97 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG082,TRIP012,DRV042,2024-02-06 09:08:06,1086,harsh_braking,medium,0.78,0.46,0.64,Hard acceleration detected (2.7 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG083,TRIP207,DRV131,2024-02-06 09:10:51,111,conflict_moment,low,0.53,0.32,0.44,Continued elevated audio (55 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG084,TRIP207,DRV131,2024-02-06 09:11:21,141,harsh_braking,medium,0.83,0.32,0.6,Hard acceleration detected (2.9 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG085,TRIP110,DRV198,2024-02-06 09:12:42,1362,moderate_brake,medium,0.63,0.53,0.59,Moderate motion event (2.2 m/s²) with audio evidence (score=0.53).,Motion: moderate | Audio: elevated
+FLAG086,TRIP027,DRV136,2024-02-06 09:13:59,299,moderate_brake,medium,0.65,0.46,0.56,Moderate motion event (2.3 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG087,TRIP207,DRV131,2024-02-06 09:21:06,726,moderate_brake,low,0.65,0.33,0.51,Moderate motion event (2.3 m/s²) with audio evidence (score=0.33).,Motion: moderate | Audio: normal
+FLAG088,TRIP183,DRV106,2024-02-06 09:23:56,176,moderate_brake,low,0.5,0.33,0.42,Moderate motion event (1.8 m/s²) with audio evidence (score=0.33).,Motion: moderate | Audio: normal
+FLAG089,TRIP027,DRV136,2024-02-06 09:24:51,951,harsh_braking,medium,0.9,0.46,0.7,Hard acceleration detected (3.1 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG090,TRIP063,DRV189,2024-02-06 09:25:00,240,moderate_brake,low,0.5,0.34,0.43,Moderate motion event (1.7 m/s²) with audio evidence (score=0.34).,Motion: moderate | Audio: normal
+FLAG091,TRIP183,DRV106,2024-02-06 09:26:53,353,audio_spike,high,0.64,0.88,0.75,Elevated cabin audio (83 dB) detected.,Motion: moderate | Audio: argument
+FLAG092,TRIP063,DRV189,2024-02-06 09:29:01,481,audio_spike,medium,0.63,0.79,0.7,Elevated cabin audio (82 dB) detected.,Motion: moderate | Audio: argument
+FLAG093,TRIP087,DRV011,2024-02-06 09:30:37,1297,conflict_moment,high,0.49,1.0,0.72,Combined signal: motion + audio events detected in trip. Elevated cabin audio (96 dB) detected.,Motion: moderate | Audio: argument
+FLAG094,TRIP027,DRV136,2024-02-06 09:30:41,1301,harsh_braking,high,0.91,0.46,0.71,Hard acceleration detected (3.2 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG095,TRIP087,DRV011,2024-02-06 09:31:07,1327,audio_spike,high,0.47,1.0,0.71,Elevated cabin audio (96 dB) detected.,Motion: moderate | Audio: argument
+FLAG096,TRIP087,DRV011,2024-02-06 09:32:43,1423,harsh_braking,medium,0.72,0.56,0.65,Hard acceleration detected (2.5 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG097,TRIP005,DRV206,2024-02-06 09:33:51,1131,moderate_brake,medium,0.67,0.46,0.58,Moderate motion event (2.4 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG098,TRIP005,DRV206,2024-02-06 09:35:21,1221,moderate_brake,low,0.61,0.46,0.54,Moderate motion event (2.1 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG099,TRIP099,DRV004,2024-02-06 09:40:17,437,moderate_brake,low,0.44,0.36,0.41,Moderate motion event (1.6 m/s²) with audio evidence (score=0.36).,Motion: moderate | Audio: normal
+FLAG100,TRIP159,DRV025,2024-02-06 09:43:52,652,audio_spike,low,0.41,0.65,0.52,Event: motion_score=0.41 audio_score=0.65,Motion: normal | Audio: elevated
+FLAG101,TRIP159,DRV025,2024-02-06 09:44:22,682,harsh_braking,high,0.76,0.65,0.71,Hard acceleration detected (2.6 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG102,TRIP099,DRV004,2024-02-06 09:47:34,874,sustained_stress,medium,0.55,0.67,0.6,Continued elevated audio (77 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG103,TRIP159,DRV025,2024-02-06 09:48:01,901,conflict_moment,medium,0.66,0.7,0.68,Combined signal: motion + audio events detected in trip. Continued elevated audio (75 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG104,TRIP195,DRV160,2024-02-06 09:49:26,266,moderate_brake,medium,0.51,0.66,0.57,Moderate motion event (1.8 m/s²) with audio evidence (score=0.66).,Motion: moderate | Audio: elevated
+FLAG105,TRIP219,DRV133,2024-02-06 09:52:32,1172,harsh_braking,medium,0.82,0.32,0.59,Hard acceleration detected (2.9 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG106,TRIP219,DRV133,2024-02-06 09:52:46,1186,moderate_brake,low,0.66,0.32,0.51,Moderate motion event (2.3 m/s²) with audio evidence (score=0.32).,Motion: moderate | Audio: normal
+FLAG107,TRIP171,DRV048,2024-02-06 10:00:16,196,sustained_stress,medium,0.47,0.67,0.56,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG108,TRIP171,DRV048,2024-02-06 10:00:46,226,sustained_stress,medium,0.47,0.67,0.56,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG109,TRIP013,DRV096,2024-02-06 10:06:06,1266,moderate_brake,medium,0.69,0.46,0.59,Moderate motion event (2.4 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG110,TRIP112,DRV095,2024-02-06 10:07:13,193,harsh_braking,medium,1.0,0.29,0.68,Hard acceleration detected (4.2 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG111,TRIP013,DRV096,2024-02-06 10:08:52,1432,harsh_braking,medium,0.78,0.46,0.64,Hard acceleration detected (2.7 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG112,TRIP006,DRV077,2024-02-06 10:08:54,234,audio_spike,medium,0.58,0.72,0.64,Elevated cabin audio (80 dB) detected.,Motion: moderate | Audio: argument
+FLAG113,TRIP172,DRV007,2024-02-06 10:09:12,312,sustained_stress,medium,0.57,0.59,0.58,Continued elevated audio (73 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG114,TRIP172,DRV007,2024-02-06 10:09:42,342,conflict_moment,high,1.0,0.59,0.81,Combined signal: motion + audio events detected in trip. Hard acceleration detected (4.6 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG115,TRIP013,DRV096,2024-02-06 10:10:13,1513,harsh_braking,medium,0.74,0.46,0.61,Sudden deceleration detected (2.6 m/s² spike). Audio elevated.,Motion: harsh_brake | Audio: normal
+FLAG116,TRIP006,DRV077,2024-02-06 10:14:29,569,audio_spike,high,0.57,0.92,0.73,Elevated cabin audio (95 dB) detected.,Motion: moderate | Audio: argument
+FLAG117,TRIP088,DRV043,2024-02-06 10:17:25,85,moderate_brake,low,0.49,0.31,0.41,Moderate motion event (1.7 m/s²) with audio evidence (score=0.31).,Motion: moderate | Audio: normal
+FLAG118,TRIP148,DRV024,2024-02-06 10:18:20,140,harsh_braking,high,1.0,0.69,0.86,Hard acceleration detected (3.7 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG119,TRIP171,DRV048,2024-02-06 10:18:22,1282,moderate_brake,medium,0.63,0.64,0.63,Moderate motion event (2.2 m/s²) with audio evidence (score=0.64).,Motion: moderate | Audio: elevated
+FLAG120,TRIP088,DRV043,2024-02-06 10:18:51,171,audio_spike,high,0.61,1.0,0.79,Elevated cabin audio (88 dB) detected.,Motion: moderate | Audio: argument
+FLAG121,TRIP172,DRV007,2024-02-06 10:20:11,971,harsh_braking,medium,1.0,0.34,0.7,Sudden deceleration detected (4.6 m/s² spike). Audio elevated.,Motion: harsh_brake | Audio: very_loud
+FLAG122,TRIP111,DRV183,2024-02-06 10:20:41,1421,audio_spike,high,0.54,0.98,0.74,Elevated cabin audio (97 dB) detected.,Motion: moderate | Audio: argument
+FLAG123,TRIP111,DRV183,2024-02-06 10:21:11,1451,conflict_moment,high,0.78,0.98,0.87,Combined signal: Harsh acceleration (2.7 m/s²) + sustained high audio (97 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG124,TRIP006,DRV077,2024-02-06 10:24:08,1148,moderate_brake,medium,0.48,0.63,0.55,Moderate motion event (1.7 m/s²) with audio evidence (score=0.63).,Motion: moderate | Audio: elevated
+FLAG125,TRIP208,DRV178,2024-02-06 10:29:42,822,sustained_stress,medium,0.65,0.76,0.7,Continued elevated audio (79 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG126,TRIP124,DRV084,2024-02-06 10:31:27,207,moderate_brake,low,0.59,0.3,0.46,Moderate motion event (2.1 m/s²). Normal traffic pattern.,Motion: moderate | Audio: normal
+FLAG127,TRIP124,DRV084,2024-02-06 10:31:57,237,conflict_moment,low,0.53,0.3,0.43,Event: motion_score=0.53 audio_score=0.3,Motion: moderate | Audio: normal
+FLAG128,TRIP028,DRV189,2024-02-06 10:34:35,1115,harsh_braking,high,0.74,0.86,0.79,Hard acceleration detected (2.6 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG129,TRIP208,DRV178,2024-02-06 10:34:50,1130,conflict_moment,high,1.0,0.54,0.79,Combined signal: motion + audio events detected in trip. Hard acceleration detected (3.7 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG130,TRIP208,DRV178,2024-02-06 10:35:20,1160,harsh_braking,high,1.0,0.54,0.79,Hard acceleration detected (5.3 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG131,TRIP028,DRV189,2024-02-06 10:35:38,1178,conflict_moment,high,0.69,0.95,0.81,Combined signal: motion + audio events detected in trip. Elevated cabin audio (97 dB) detected.,Motion: moderate | Audio: argument
+FLAG132,TRIP064,DRV097,2024-02-06 10:36:13,493,harsh_braking,high,0.83,0.66,0.75,Hard acceleration detected (2.9 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG133,TRIP028,DRV189,2024-02-06 10:37:11,1271,audio_spike,high,0.57,0.95,0.74,Elevated cabin audio (97 dB) detected.,Motion: moderate | Audio: argument
+FLAG134,TRIP064,DRV097,2024-02-06 10:46:56,1136,sustained_stress,medium,0.69,0.59,0.64,Continued elevated audio (73 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG135,TRIP064,DRV097,2024-02-06 10:47:26,1166,conflict_moment,high,0.96,0.59,0.79,Combined signal: motion + audio events detected in trip. Hard acceleration detected (3.3 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG136,TRIP007,DRV095,2024-02-06 10:50:06,126,moderate_brake,low,0.65,0.29,0.49,Moderate motion event (2.3 m/s²). Normal traffic pattern.,Motion: moderate | Audio: normal
+FLAG137,TRIP100,DRV013,2024-02-06 10:51:30,690,moderate_brake,low,0.44,0.32,0.39,Moderate motion event (1.5 m/s²) with audio evidence (score=0.32).,Motion: moderate | Audio: normal
+FLAG138,TRIP007,DRV095,2024-02-06 10:53:21,321,conflict_moment,low,0.55,0.3,0.44,Event: motion_score=0.55 audio_score=0.3,Motion: moderate | Audio: normal
+FLAG139,TRIP160,DRV068,2024-02-06 10:53:35,815,harsh_braking,high,1.0,0.52,0.78,Hard acceleration detected (4.1 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG140,TRIP100,DRV013,2024-02-06 11:03:01,1381,sustained_stress,medium,0.56,0.7,0.62,Continued elevated audio (80 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG141,TRIP076,DRV189,2024-02-06 11:08:10,970,sustained_stress,medium,0.46,0.65,0.55,Continued elevated audio (75 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG142,TRIP007,DRV095,2024-02-06 11:08:20,1220,sustained_stress,medium,0.57,0.54,0.56,Continued elevated audio (68 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG143,TRIP113,DRV056,2024-02-06 11:18:42,462,moderate_brake,low,0.5,0.31,0.41,Moderate motion event (1.7 m/s²) with audio evidence (score=0.31).,Motion: moderate | Audio: normal
+FLAG144,TRIP173,DRV096,2024-02-06 11:20:35,575,moderate_brake,low,0.46,0.37,0.42,Moderate motion event (1.6 m/s²) with audio evidence (score=0.37).,Motion: moderate | Audio: normal
+FLAG145,TRIP029,DRV106,2024-02-06 11:24:01,61,moderate_brake,low,0.52,0.46,0.49,Moderate motion event (1.8 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG146,TRIP113,DRV056,2024-02-06 11:26:25,925,audio_spike,high,0.61,0.88,0.73,Elevated cabin audio (83 dB) detected.,Motion: moderate | Audio: argument
+FLAG147,TRIP149,DRV134,2024-02-06 11:28:15,315,harsh_braking,medium,1.0,0.32,0.7,Hard acceleration detected (4.2 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG148,TRIP209,DRV198,2024-02-06 11:28:52,352,audio_spike,medium,0.48,0.92,0.67,Elevated cabin audio (87 dB) detected.,Motion: moderate | Audio: argument
+FLAG149,TRIP209,DRV198,2024-02-06 11:29:22,382,conflict_moment,high,1.0,0.92,0.96,Combined signal: Harsh acceleration (4.3 m/s²) + sustained high audio (87 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG150,TRIP173,DRV096,2024-02-06 11:30:10,1150,sustained_stress,medium,0.57,0.68,0.62,Continued elevated audio (77 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG151,TRIP209,DRV198,2024-02-06 11:33:50,650,harsh_braking,medium,1.0,0.32,0.7,Hard acceleration detected (4.3 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG152,TRIP029,DRV106,2024-02-06 11:36:36,816,moderate_brake,low,0.59,0.46,0.53,Moderate motion event (2.1 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG153,TRIP089,DRV078,2024-02-06 11:37:47,887,harsh_braking,medium,1.0,0.31,0.69,Hard acceleration detected (4.0 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG154,TRIP125,DRV198,2024-02-06 11:42:12,432,audio_spike,medium,0.52,0.81,0.65,Elevated cabin audio (84 dB) detected.,Motion: moderate | Audio: argument
+FLAG155,TRIP089,DRV078,2024-02-06 11:47:54,1494,conflict_moment,high,0.84,0.86,0.85,Combined signal: Harsh braking (2.9 m/s²) + sustained high audio (87 dB). Potential argument.,Motion: harsh_brake | Audio: argument
+FLAG156,TRIP089,DRV078,2024-02-06 11:48:24,1524,audio_spike,medium,0.56,0.86,0.7,Elevated cabin audio (87 dB) detected.,Motion: moderate | Audio: argument
+FLAG157,TRIP041,DRV118,2024-02-06 12:00:46,826,audio_spike,low,0.17,0.92,0.51,Elevated cabin audio (87 dB) detected.,Motion: normal | Audio: argument
+FLAG158,TRIP197,DRV052,2024-02-06 12:11:18,738,moderate_brake,medium,0.5,0.65,0.57,Moderate motion event (1.8 m/s²) with audio evidence (score=0.65).,Motion: moderate | Audio: elevated
+FLAG159,TRIP078,DRV194,2024-02-06 12:11:22,322,moderate_brake,low,0.53,0.37,0.46,Moderate motion event (1.8 m/s²) with audio evidence (score=0.37).,Motion: moderate | Audio: normal
+FLAG160,TRIP197,DRV052,2024-02-06 12:11:48,768,harsh_braking,high,1.0,0.65,0.84,Hard acceleration detected (4.2 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG161,TRIP137,DRV021,2024-02-06 12:13:20,860,conflict_moment,low,0.57,0.27,0.43,Event: motion_score=0.57 audio_score=0.27,Motion: moderate | Audio: normal
+FLAG162,TRIP137,DRV021,2024-02-06 12:13:50,890,harsh_braking,low,0.58,0.27,0.44,Event: motion_score=0.58 audio_score=0.27,Motion: moderate | Audio: normal
+FLAG163,TRIP078,DRV194,2024-02-06 12:16:44,644,sustained_stress,medium,0.66,0.67,0.66,Continued elevated audio (77 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG164,TRIP137,DRV021,2024-02-06 12:19:43,1243,sustained_stress,low,0.42,0.66,0.53,Continued elevated audio (75 dB) with moderate motion disturbance.,Motion: normal | Audio: very_loud
+FLAG165,TRIP054,DRV046,2024-02-06 12:19:44,104,conflict_moment,high,0.8,0.73,0.77,Combined signal: motion + audio events detected in trip. Hard acceleration detected (2.8 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG166,TRIP077,DRV206,2024-02-06 12:20:18,1278,sustained_stress,medium,0.56,0.66,0.61,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG167,TRIP197,DRV052,2024-02-06 12:20:26,1286,harsh_braking,high,1.0,0.64,0.84,Sudden deceleration detected (4.2 m/s² spike). Audio elevated.,Motion: harsh_brake | Audio: elevated
+FLAG168,TRIP054,DRV046,2024-02-06 12:22:16,256,harsh_braking,medium,0.87,0.33,0.62,Hard acceleration detected (3.0 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG169,TRIP174,DRV085,2024-02-06 12:27:35,575,moderate_brake,low,0.48,0.32,0.41,Moderate motion event (1.7 m/s²) with audio evidence (score=0.32).,Motion: moderate | Audio: normal
+FLAG170,TRIP198,DRV192,2024-02-06 12:30:49,1489,moderate_brake,medium,0.48,0.65,0.55,Moderate motion event (1.7 m/s²) with audio evidence (score=0.65).,Motion: moderate | Audio: elevated
+FLAG171,TRIP054,DRV046,2024-02-06 12:35:11,1031,sustained_stress,medium,0.64,0.6,0.62,Continued elevated audio (74 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG172,TRIP174,DRV085,2024-02-06 12:37:11,1151,audio_spike,high,0.61,0.84,0.71,Elevated cabin audio (84 dB) detected.,Motion: moderate | Audio: argument
+FLAG173,TRIP030,DRV150,2024-02-06 12:40:29,629,moderate_brake,medium,0.62,0.46,0.55,Moderate motion event (2.2 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG174,TRIP126,DRV157,2024-02-06 12:43:54,114,audio_spike,low,0.41,0.66,0.52,Event: motion_score=0.41 audio_score=0.66,Motion: normal | Audio: elevated
+FLAG175,TRIP150,DRV179,2024-02-06 12:46:19,979,harsh_braking,medium,1.0,0.34,0.7,Hard acceleration detected (3.8 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG176,TRIP210,DRV172,2024-02-06 12:47:27,1047,conflict_moment,low,0.55,0.3,0.44,Event: motion_score=0.55 audio_score=0.3,Motion: moderate | Audio: normal
+FLAG177,TRIP066,DRV135,2024-02-06 12:48:26,386,moderate_brake,low,0.43,0.33,0.38,Moderate motion event (1.5 m/s²) with audio evidence (score=0.33).,Motion: moderate | Audio: normal
+FLAG178,TRIP030,DRV150,2024-02-06 12:48:32,1112,moderate_brake,medium,0.64,0.46,0.56,Moderate motion event (2.2 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG179,TRIP066,DRV135,2024-02-06 12:54:53,773,audio_spike,medium,0.54,0.87,0.69,Elevated cabin audio (82 dB) detected.,Motion: moderate | Audio: argument
+FLAG180,TRIP162,DRV193,2024-02-06 13:02:15,495,sustained_stress,medium,0.51,0.7,0.59,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG181,TRIP162,DRV193,2024-02-06 13:18:46,1486,conflict_moment,high,1.0,0.72,0.87,Combined signal: motion + audio events detected in trip. Hard acceleration detected (4.3 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG182,TRIP162,DRV193,2024-02-06 13:19:16,1516,harsh_braking,high,1.0,0.72,0.87,Sudden deceleration detected (4.1 m/s² spike). Audio elevated.,Motion: harsh_brake | Audio: very_loud
+FLAG183,TRIP139,DRV043,2024-02-06 13:19:44,404,conflict_moment,medium,0.66,0.74,0.7,Combined signal: motion + audio events detected in trip. Continued elevated audio (78 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG184,TRIP139,DRV043,2024-02-06 13:20:14,434,harsh_braking,high,0.86,0.74,0.81,Hard acceleration detected (3.0 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG185,TRIP139,DRV043,2024-02-06 13:22:43,583,moderate_brake,medium,0.65,0.66,0.65,Moderate motion event (2.3 m/s²) with audio evidence (score=0.66).,Motion: moderate | Audio: elevated
+FLAG186,TRIP175,DRV046,2024-02-06 13:30:11,311,moderate_brake,low,0.45,0.36,0.41,Moderate motion event (1.6 m/s²) with audio evidence (score=0.36).,Motion: moderate | Audio: normal
+FLAG187,TRIP199,DRV035,2024-02-06 13:34:28,1288,sustained_stress,medium,0.62,0.72,0.66,Continued elevated audio (82 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG188,TRIP175,DRV046,2024-02-06 13:35:22,622,sustained_stress,low,0.58,0.33,0.47,Continued elevated audio (56 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG189,TRIP151,DRV001,2024-02-06 13:38:27,87,moderate_brake,medium,0.56,0.65,0.61,Moderate motion event (2.0 m/s²) with audio evidence (score=0.65).,Motion: moderate | Audio: elevated
+FLAG190,TRIP151,DRV001,2024-02-06 13:38:57,117,harsh_braking,high,0.88,0.65,0.78,Hard acceleration detected (3.1 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG191,TRIP055,DRV074,2024-02-06 13:41:39,999,moderate_brake,low,0.59,0.32,0.46,Moderate motion event (2.1 m/s²) with audio evidence (score=0.32).,Motion: moderate | Audio: normal
+FLAG192,TRIP151,DRV001,2024-02-06 13:44:55,475,conflict_moment,medium,0.65,0.72,0.68,Combined signal: motion + audio events detected in trip. Continued elevated audio (78 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG193,TRIP187,DRV084,2024-02-06 13:51:01,121,moderate_brake,low,0.44,0.32,0.38,Moderate motion event (1.5 m/s²) with audio evidence (score=0.32).,Motion: moderate | Audio: normal
+FLAG194,TRIP187,DRV084,2024-02-06 13:53:02,242,sustained_stress,medium,0.54,0.73,0.62,Continued elevated audio (77 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG195,TRIP067,DRV153,2024-02-06 14:03:57,897,harsh_braking,medium,1.0,0.32,0.69,Hard acceleration detected (4.3 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG196,TRIP016,DRV067,2024-02-06 14:08:39,519,harsh_braking,medium,0.78,0.46,0.64,Hard acceleration detected (2.7 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG197,TRIP016,DRV067,2024-02-06 14:11:19,679,harsh_braking,medium,0.82,0.46,0.66,Hard acceleration detected (2.9 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG198,TRIP044,DRV131,2024-02-06 14:12:33,273,audio_spike,low,0.13,0.79,0.43,Elevated cabin audio (82 dB) detected.,Motion: normal | Audio: argument
+FLAG199,TRIP164,DRV017,2024-02-06 14:15:52,472,sustained_stress,low,0.42,0.55,0.48,Continued elevated audio (73 dB) with moderate motion disturbance.,Motion: normal | Audio: very_loud
+FLAG200,TRIP016,DRV067,2024-02-06 14:17:54,1074,moderate_brake,low,0.7,0.34,0.54,Moderate motion event (2.5 m/s²) with audio evidence (score=0.34).,Motion: moderate | Audio: normal
+FLAG201,TRIP104,DRV021,2024-02-06 14:23:11,911,sustained_stress,low,0.5,0.59,0.54,Continued elevated audio (73 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG202,TRIP080,DRV172,2024-02-06 14:26:36,396,moderate_brake,low,0.51,0.53,0.52,Moderate motion event (1.8 m/s²) with audio evidence (score=0.53).,Motion: moderate | Audio: elevated
+FLAG203,TRIP080,DRV172,2024-02-06 14:27:06,426,harsh_braking,high,0.85,0.53,0.71,Hard acceleration detected (3.0 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG204,TRIP080,DRV172,2024-02-06 14:29:34,574,conflict_moment,low,0.56,0.27,0.43,Event: motion_score=0.56 audio_score=0.27,Motion: moderate | Audio: normal
+FLAG205,TRIP116,DRV195,2024-02-06 14:37:09,309,conflict_moment,low,0.52,0.3,0.42,Event: motion_score=0.52 audio_score=0.3,Motion: moderate | Audio: normal
+FLAG206,TRIP116,DRV195,2024-02-06 14:42:19,619,sustained_stress,low,0.67,0.36,0.53,Continued elevated audio (59 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG207,TRIP092,DRV059,2024-02-06 14:56:16,736,moderate_brake,medium,0.52,0.63,0.57,Moderate motion event (1.8 m/s²) with audio evidence (score=0.63).,Motion: moderate | Audio: elevated
+FLAG208,TRIP032,DRV043,2024-02-06 14:58:05,845,harsh_braking,high,0.73,0.68,0.71,Hard acceleration detected (2.5 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG209,TRIP032,DRV043,2024-02-06 14:58:08,848,sustained_stress,medium,0.5,0.68,0.58,Continued elevated audio (79 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG210,TRIP017,DRV144,2024-02-06 14:59:34,454,sustained_stress,low,0.62,0.42,0.53,Continued elevated audio (64 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG211,TRIP068,DRV182,2024-02-06 15:02:56,416,conflict_moment,low,0.46,0.34,0.41,Continued elevated audio (57 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG212,TRIP068,DRV182,2024-02-06 15:03:26,446,moderate_brake,low,0.43,0.34,0.39,Moderate motion event (1.5 m/s²) with audio evidence (score=0.34).,Motion: moderate | Audio: very_loud
+FLAG213,TRIP189,DRV018,2024-02-06 15:04:19,79,harsh_braking,high,1.0,0.36,0.71,Hard acceleration detected (4.2 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG214,TRIP017,DRV144,2024-02-06 15:07:05,905,audio_spike,high,0.68,0.84,0.75,Elevated cabin audio (83 dB) detected.,Motion: moderate | Audio: argument
+FLAG215,TRIP017,DRV144,2024-02-06 15:09:19,1039,conflict_moment,high,0.77,0.73,0.75,Combined signal: Harsh acceleration (2.7 m/s²) + sustained high audio (81 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG216,TRIP129,DRV052,2024-02-06 15:21:30,1110,conflict_moment,low,0.16,0.72,0.41,Continued elevated audio (78 dB) with moderate motion disturbance.,Motion: normal | Audio: very_loud
+FLAG217,TRIP081,DRV048,2024-02-06 15:28:10,70,audio_spike,medium,0.48,0.97,0.7,Elevated cabin audio (96 dB) detected.,Motion: moderate | Audio: argument
+FLAG218,TRIP081,DRV048,2024-02-06 15:28:40,100,conflict_moment,high,0.77,0.97,0.86,Combined signal: Harsh acceleration (2.7 m/s²) + sustained high audio (96 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG219,TRIP045,DRV177,2024-02-06 15:30:10,910,moderate_brake,medium,0.62,0.64,0.63,Moderate motion event (2.2 m/s²) with audio evidence (score=0.64).,Motion: moderate | Audio: elevated
+FLAG220,TRIP141,DRV060,2024-02-06 15:35:28,508,harsh_braking,high,0.79,0.72,0.76,Hard acceleration detected (2.8 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG221,TRIP165,DRV203,2024-02-06 15:36:04,1264,harsh_braking,high,1.0,0.71,0.87,Hard acceleration detected (4.0 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG222,TRIP081,DRV048,2024-02-06 15:36:10,550,sustained_stress,medium,0.61,0.69,0.65,Continued elevated audio (74 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG223,TRIP021,DRV142,2024-02-06 15:37:18,618,audio_spike,low,0.4,0.46,0.43,Event: motion_score=0.4 audio_score=0.46,Motion: normal | Audio: normal
+FLAG224,TRIP057,DRV168,2024-02-06 15:40:00,60,moderate_brake,low,0.52,0.36,0.45,Moderate motion event (1.8 m/s²) with audio evidence (score=0.36).,Motion: moderate | Audio: normal
+FLAG225,TRIP057,DRV168,2024-02-06 15:40:40,100,sustained_stress,low,0.65,0.36,0.52,Continued elevated audio (59 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG226,TRIP021,DRV142,2024-02-06 15:43:51,1011,moderate_brake,medium,0.64,0.46,0.56,Moderate motion event (2.2 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG227,TRIP141,DRV060,2024-02-06 15:43:56,1016,sustained_stress,medium,0.69,0.55,0.63,Continued elevated audio (73 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG228,TRIP201,DRV060,2024-02-06 15:44:25,1045,moderate_brake,low,0.5,0.31,0.41,Moderate motion event (1.7 m/s²) with audio evidence (score=0.31).,Motion: moderate | Audio: normal
+FLAG229,TRIP117,DRV032,2024-02-06 15:53:06,846,harsh_braking,high,1.0,0.65,0.84,Hard acceleration detected (4.4 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG230,TRIP093,DRV090,2024-02-06 15:53:15,135,conflict_moment,high,0.74,0.85,0.79,Combined signal: Harsh acceleration (2.6 m/s²) + sustained high audio (86 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG231,TRIP093,DRV090,2024-02-06 15:53:29,149,harsh_braking,medium,0.85,0.29,0.6,Hard acceleration detected (3.0 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG232,TRIP213,DRV067,2024-02-06 15:53:53,173,moderate_brake,low,0.49,0.32,0.41,Moderate motion event (1.7 m/s²) with audio evidence (score=0.32).,Motion: moderate | Audio: normal
+FLAG233,TRIP213,DRV067,2024-02-06 15:56:46,346,sustained_stress,medium,0.61,0.67,0.63,Continued elevated audio (77 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG234,TRIP070,DRV207,2024-02-06 16:16:14,374,sustained_stress,low,0.42,0.67,0.53,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: normal | Audio: very_loud
+FLAG235,TRIP070,DRV207,2024-02-06 16:16:44,404,sustained_stress,medium,0.68,0.67,0.68,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG236,TRIP130,DRV094,2024-02-06 16:21:51,711,audio_spike,medium,0.49,0.92,0.68,Elevated cabin audio (87 dB) detected.,Motion: moderate | Audio: argument
+FLAG237,TRIP130,DRV094,2024-02-06 16:22:21,741,conflict_moment,high,0.76,0.92,0.83,Combined signal: Harsh acceleration (2.7 m/s²) + sustained high audio (87 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG238,TRIP130,DRV094,2024-02-06 16:30:05,1205,sustained_stress,medium,0.57,0.7,0.63,Continued elevated audio (78 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG239,TRIP046,DRV191,2024-02-06 16:31:56,596,harsh_braking,medium,1.0,0.29,0.68,Hard acceleration detected (4.0 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG240,TRIP106,DRV205,2024-02-06 16:36:20,860,audio_spike,low,0.39,0.52,0.44,Event: motion_score=0.39 audio_score=0.52,Motion: normal | Audio: elevated
+FLAG241,TRIP106,DRV205,2024-02-06 16:36:50,890,moderate_brake,medium,0.7,0.52,0.62,Moderate motion event (2.5 m/s²) with audio evidence (score=0.52).,Motion: moderate | Audio: elevated
+FLAG242,TRIP106,DRV205,2024-02-06 16:41:58,1198,sustained_stress,medium,0.59,0.67,0.63,Continued elevated audio (76 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG243,TRIP178,DRV046,2024-02-06 16:55:21,561,harsh_braking,medium,0.75,0.59,0.67,Hard acceleration detected (2.6 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG244,TRIP022,DRV048,2024-02-06 16:57:23,1403,conflict_moment,high,0.75,1.0,0.86,Combined signal: Harsh acceleration (2.6 m/s²) + sustained high audio (96 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG245,TRIP154,DRV169,2024-02-06 16:59:09,69,harsh_braking,high,1.0,0.69,0.86,Hard acceleration detected (4.0 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG246,TRIP154,DRV169,2024-02-06 16:59:39,99,harsh_braking,high,1.0,0.69,0.86,Hard acceleration detected (6.5 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG247,TRIP022,DRV048,2024-02-06 17:00:06,1566,conflict_moment,high,0.76,1.0,0.87,Combined signal: Harsh braking (2.7 m/s²) + sustained high audio (96 dB). Potential argument.,Motion: harsh_brake | Audio: argument
+FLAG248,TRIP118,DRV124,2024-02-06 17:00:07,847,sustained_stress,low,0.56,0.37,0.48,Continued elevated audio (60 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG249,TRIP118,DRV124,2024-02-06 17:00:37,877,conflict_moment,medium,0.94,0.37,0.69,Combined signal: motion + audio events detected in trip. Hard acceleration detected (3.3 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG250,TRIP022,DRV048,2024-02-06 17:02:52,1732,audio_spike,high,0.6,1.0,0.78,Elevated cabin audio (96 dB) detected.,Motion: moderate | Audio: argument
+FLAG251,TRIP178,DRV046,2024-02-06 17:02:57,1017,conflict_moment,medium,0.57,0.76,0.65,Combined signal: motion + audio events detected in trip. Continued elevated audio (81 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG252,TRIP118,DRV124,2024-02-06 17:07:27,1287,harsh_braking,low,0.75,0.29,0.54,Event: motion_score=0.75 audio_score=0.29,Motion: harsh_brake | Audio: normal
+FLAG253,TRIP035,DRV185,2024-02-06 17:17:09,729,harsh_braking,medium,0.76,0.3,0.55,Hard acceleration detected (2.6 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG254,TRIP035,DRV185,2024-02-06 17:17:20,740,conflict_moment,high,0.82,0.71,0.77,Combined signal: motion + audio events detected in trip. Hard acceleration detected (2.9 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG255,TRIP035,DRV185,2024-02-06 17:17:39,759,sustained_stress,medium,0.65,0.71,0.68,Continued elevated audio (75 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG256,TRIP071,DRV011,2024-02-06 17:19:34,154,moderate_brake,low,0.47,0.35,0.42,Moderate motion event (1.6 m/s²) with audio evidence (score=0.35).,Motion: moderate | Audio: normal
+FLAG257,TRIP191,DRV118,2024-02-06 17:20:13,193,sustained_stress,medium,0.54,0.68,0.6,Continued elevated audio (77 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG258,TRIP191,DRV118,2024-02-06 17:20:20,200,moderate_brake,low,0.66,0.3,0.5,Moderate motion event (2.3 m/s²). Normal traffic pattern.,Motion: moderate | Audio: normal
+FLAG259,TRIP155,DRV127,2024-02-06 17:21:32,992,sustained_stress,low,0.49,0.56,0.52,Continued elevated audio (74 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG260,TRIP071,DRV011,2024-02-06 17:22:09,309,sustained_stress,medium,0.58,0.7,0.63,Continued elevated audio (80 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG261,TRIP095,DRV088,2024-02-06 17:22:58,1078,moderate_brake,low,0.51,0.31,0.42,Moderate motion event (1.8 m/s²) with audio evidence (score=0.31).,Motion: moderate | Audio: normal
+FLAG262,TRIP167,DRV118,2024-02-06 17:31:44,164,harsh_braking,high,1.0,0.52,0.78,Hard acceleration detected (3.5 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG263,TRIP047,DRV107,2024-02-06 17:37:02,482,harsh_braking,medium,0.94,0.35,0.68,Hard acceleration detected (3.3 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG264,TRIP008,DRV050,2024-02-06 17:38:24,504,conflict_moment,low,0.58,0.22,0.42,Continued elevated audio (53 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG265,TRIP167,DRV118,2024-02-06 17:42:12,792,conflict_moment,high,0.74,0.92,0.82,Combined signal: Harsh braking (2.6 m/s²) + sustained high audio (87 dB). Potential argument.,Motion: harsh_brake | Audio: argument
+FLAG266,TRIP023,DRV091,2024-02-06 17:42:18,78,moderate_brake,medium,0.7,0.46,0.59,Moderate motion event (2.5 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG267,TRIP167,DRV118,2024-02-06 17:42:42,822,audio_spike,high,0.64,0.92,0.77,Elevated cabin audio (87 dB) detected.,Motion: moderate | Audio: argument
+FLAG268,TRIP203,DRV146,2024-02-06 17:43:26,146,harsh_braking,high,1.0,0.63,0.83,Hard acceleration detected (4.1 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG269,TRIP023,DRV091,2024-02-06 17:44:30,210,moderate_brake,low,0.59,0.46,0.53,Moderate motion event (2.1 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG270,TRIP008,DRV050,2024-02-06 17:45:44,944,audio_spike,low,0.39,0.58,0.47,Event: motion_score=0.39 audio_score=0.58,Motion: normal | Audio: elevated
+FLAG271,TRIP083,DRV151,2024-02-06 17:47:55,415,harsh_braking,medium,1.0,0.29,0.68,Hard acceleration detected (3.9 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG272,TRIP008,DRV050,2024-02-06 17:48:13,1093,audio_spike,high,0.56,0.95,0.74,Elevated cabin audio (97 dB) detected.,Motion: moderate | Audio: argument
+FLAG273,TRIP083,DRV151,2024-02-06 17:54:45,825,conflict_moment,high,0.78,0.91,0.84,Combined signal: Harsh braking (2.7 m/s²) + sustained high audio (85 dB). Potential argument.,Motion: harsh_brake | Audio: argument
+FLAG274,TRIP083,DRV151,2024-02-06 17:55:15,855,audio_spike,medium,0.49,0.91,0.68,Elevated cabin audio (85 dB) detected.,Motion: moderate | Audio: argument
+FLAG275,TRIP179,DRV147,2024-02-06 17:55:58,178,harsh_braking,medium,1.0,0.32,0.69,Hard acceleration detected (3.9 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG276,TRIP179,DRV147,2024-02-06 17:56:28,208,harsh_braking,medium,1.0,0.32,0.69,Hard acceleration detected (6.5 m/s² spike).,Motion: harsh_accel | Audio: very_loud
+FLAG277,TRIP059,DRV028,2024-02-06 17:57:21,261,moderate_brake,low,0.51,0.53,0.52,Moderate motion event (1.8 m/s²) with audio evidence (score=0.53).,Motion: moderate | Audio: elevated
+FLAG278,TRIP143,DRV042,2024-02-06 17:57:25,985,harsh_braking,high,1.0,0.66,0.85,Hard acceleration detected (4.1 m/s² spike).,Motion: harsh_accel | Audio: elevated
+FLAG279,TRIP018,DRV161,2024-02-06 18:07:43,463,harsh_braking,medium,0.84,0.48,0.68,Hard acceleration detected (3.0 m/s² spike).,Motion: harsh_accel | Audio: normal
+FLAG280,TRIP018,DRV161,2024-02-06 18:14:26,866,conflict_moment,high,0.88,0.9,0.89,Combined signal: Harsh acceleration (3.1 m/s²) + sustained high audio (93 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG281,TRIP018,DRV161,2024-02-06 18:14:44,884,conflict_moment,high,0.76,0.9,0.83,Combined signal: Harsh braking (2.7 m/s²) + sustained high audio (93 dB). Potential argument.,Motion: harsh_brake | Audio: argument
+FLAG282,TRIP009,DRV070,2024-02-06 18:30:00,900,audio_spike,medium,0.49,0.96,0.7,Elevated cabin audio (90 dB) detected.,Motion: moderate | Audio: argument
+FLAG283,TRIP009,DRV070,2024-02-06 18:31:11,971,audio_spike,high,0.51,0.96,0.71,Elevated cabin audio (90 dB) detected.,Motion: moderate | Audio: argument
+FLAG284,TRIP009,DRV070,2024-02-06 18:36:53,1313,sustained_stress,medium,0.58,0.52,0.55,Continued elevated audio (66 dB) with moderate motion disturbance.,Motion: moderate | Audio: very_loud
+FLAG285,TRIP019,DRV045,2024-02-06 19:09:19,259,harsh_braking,low,0.66,0.18,0.44,Event: motion_score=0.66 audio_score=0.18,Motion: moderate | Audio: normal
+FLAG286,TRIP019,DRV045,2024-02-06 19:09:43,283,conflict_moment,low,0.66,0.18,0.44,Event: motion_score=0.66 audio_score=0.18,Motion: moderate | Audio: normal
+FLAG287,TRIP019,DRV045,2024-02-06 19:11:58,418,moderate_brake,low,0.58,0.46,0.53,Moderate motion event (2.0 m/s²) with audio evidence (score=0.46).,Motion: moderate | Audio: normal
+FLAG288,TRIP010,DRV145,2024-02-06 19:20:59,959,conflict_moment,high,1.0,1.0,1.0,Combined signal: Harsh acceleration (3.6 m/s²) + sustained high audio (93 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG289,TRIP010,DRV145,2024-02-06 19:23:00,1080,conflict_moment,high,1.0,1.0,1.0,Combined signal: Harsh acceleration (8.0 m/s²) + sustained high audio (94 dB). Potential argument.,Motion: harsh_accel | Audio: argument
+FLAG290,TRIP010,DRV145,2024-02-06 19:24:00,1140,audio_spike,high,0.55,1.0,0.75,Elevated cabin audio (93 dB) detected.,Motion: moderate | Audio: argument

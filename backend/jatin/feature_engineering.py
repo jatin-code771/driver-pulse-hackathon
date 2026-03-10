@@ -1,8 +1,3 @@
-"""
-feature_engineering.py
-Generates all model-ready features for the Driver Pulse system.
-"""
-
 import pandas as pd
 import numpy as np
 import logging
@@ -10,19 +5,13 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# =========================================================
-# MOTION FEATURES
-# =========================================================
-
-HARSH_BRAKE_THRESHOLD = 2.5
-HARSH_ACCEL_THRESHOLD = 2.5
-LATERAL_SWERVE_THRESHOLD = 1.5
-MODERATE_EVENT_THRESHOLD = 1.5
-MOTION_SCORE_CAP = 3.5
-
+HARSH_BRAKE_THRESHOLD      = 2.5
+HARSH_ACCEL_THRESHOLD      = 2.5
+LATERAL_SWERVE_THRESHOLD   = 1.5
+MODERATE_EVENT_THRESHOLD   = 1.5
+MOTION_SCORE_CAP           = 3.5
 
 def engineer_motion_features(acc_df: pd.DataFrame) -> pd.DataFrame:
-
     df = acc_df.copy()
 
     df["is_harsh_brake"] = (
@@ -67,23 +56,27 @@ def engineer_motion_features(acc_df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
+def classify_motion_event(row: pd.Series) -> str:
+    if row["is_harsh_brake"]:
+        return "harsh_brake"
+    if row["is_harsh_accel"]:
+        return "harsh_accel"
+    if row["is_lateral_swerve"]:
+        return "swerve"
+    if row["is_moderate_event"]:
+        return "moderate_event"
+    return "normal"
 
-# =========================================================
-# AUDIO FEATURES
-# =========================================================
-
-AUDIO_SPIKE_THRESHOLD_DB = 85.0
-AUDIO_ARGUMENT_THRESHOLD = 4
-SUSTAINED_NOISE_THRESHOLD = 60
-
+AUDIO_SPIKE_THRESHOLD_DB   = 85.0
+AUDIO_ARGUMENT_THRESHOLD   = 4
+SUSTAINED_NOISE_THRESHOLD  = 60
 
 def engineer_audio_features(aud_df: pd.DataFrame) -> pd.DataFrame:
-
     df = aud_df.copy()
 
-    df["is_noise_spike"] = (df["audio_level_db"] >= AUDIO_SPIKE_THRESHOLD_DB).astype(
-        int
-    )
+    df["is_noise_spike"] = (
+        df["audio_level_db"] >= AUDIO_SPIKE_THRESHOLD_DB
+    ).astype(int)
 
     df["is_argument_signal"] = (
         df["audio_severity_score"] >= AUDIO_ARGUMENT_THRESHOLD
@@ -98,28 +91,46 @@ def engineer_audio_features(aud_df: pd.DataFrame) -> pd.DataFrame:
 
     df["audio_score"] = (0.6 * db_score + 0.4 * sev_score).clip(0, 1)
 
-    df["sustained_penalty"] = df["sustained_duration_sec"].clip(0, 300) / 300
-
+    df["sustained_penalty"] = (
+        df["sustained_duration_sec"].clip(0, 300) / 300
+    )
     df["audio_score_adjusted"] = (
         df["audio_score"] * (1 + 0.4 * df["sustained_penalty"])
     ).clip(0, 1)
 
+    df["audio_above_baseline"] = (
+        df["audio_level_db"] > df["audio_rolling_mean"] + df["audio_rolling_std"]
+    ).astype(int)
+
+    logger.info(
+        f"[audio features] noise_spike={df['is_noise_spike'].sum()} | "
+        f"argument_signal={df['is_argument_signal'].sum()} | "
+        f"sustained={df['is_sustained_noise'].sum()}"
+    )
     return df
 
-
-# =========================================================
-# SIGNAL FUSION
-# =========================================================
+def classify_audio_event(row: pd.Series) -> str:
+    if row["is_argument_signal"] and row["is_sustained_noise"]:
+        return "sustained_argument"
+    if row["is_argument_signal"]:
+        return "argument_signal"
+    if row["is_sustained_noise"]:
+        return "sustained_noise"
+    if row["is_noise_spike"]:
+        return "noise_spike"
+    return "normal"
 
 MOTION_WEIGHT = 0.55
-AUDIO_WEIGHT = 0.45
+AUDIO_WEIGHT  = 0.45
 
-HIGH_STRESS_THRESHOLD = 0.70
+HIGH_STRESS_THRESHOLD  = 0.70
 MEDIUM_STRESS_THRESHOLD = 0.45
 
-
-def fuse_signals(acc_df, aud_df):
-
+def fuse_signals(
+    acc_df: pd.DataFrame,
+    aud_df: pd.DataFrame,
+    tolerance_sec: int = 600,
+) -> pd.DataFrame:
     acc = acc_df.copy()
     aud = aud_df.copy()
 
@@ -128,17 +139,47 @@ def fuse_signals(acc_df, aud_df):
 
     fused = acc.merge(aud, on=["trip_id", "timestamp"], how="left")
 
-    # Ensure audio columns always exist
-    for col in [
-        "is_argument_signal",
-        "is_noise_spike",
-        "is_sustained_noise",
-        "audio_score_adjusted",
-    ]:
-        if col not in fused.columns:
-            fused[col] = 0
+        if aud_grp.empty:
+            acc_grp = acc_grp.copy()
+            acc_grp["audio_score_fused"]     = 0.0
+            acc_grp["is_noise_spike"]        = 0
+            acc_grp["is_argument_signal"]    = 0
+            acc_grp["is_sustained_noise"]    = 0
+            acc_grp["audio_level_db_fused"]  = np.nan
+            merged_rows.append(acc_grp)
+            continue
 
     fused["audio_score_adjusted"] = fused["audio_score_adjusted"].fillna(0)
+
+        for _, acc_row in acc_grp.iterrows():
+            acc_ts_ns = np.int64(acc_row["timestamp"].value // 1_000_000_000)
+            deltas = np.abs(aud_ts - acc_ts_ns)
+            closest_idx = deltas.argmin()
+            closest_delta = deltas[closest_idx]
+
+            if closest_delta <= tolerance_sec:
+                aud_row = aud_grp.iloc[closest_idx]
+                acc_grp.loc[acc_row.name, "audio_score_fused"]    = aud_row["audio_score_adjusted"]
+                acc_grp.loc[acc_row.name, "is_noise_spike"]       = aud_row["is_noise_spike"]
+                acc_grp.loc[acc_row.name, "is_argument_signal"]   = aud_row["is_argument_signal"]
+                acc_grp.loc[acc_row.name, "is_sustained_noise"]   = aud_row["is_sustained_noise"]
+                acc_grp.loc[acc_row.name, "audio_level_db_fused"] = aud_row["audio_level_db"]
+            else:
+                acc_grp.loc[acc_row.name, "audio_score_fused"]    = 0.0
+                acc_grp.loc[acc_row.name, "is_noise_spike"]       = 0
+                acc_grp.loc[acc_row.name, "is_argument_signal"]   = 0
+                acc_grp.loc[acc_row.name, "is_sustained_noise"]   = 0
+                acc_grp.loc[acc_row.name, "audio_level_db_fused"] = np.nan
+
+        merged_rows.append(acc_grp)
+
+    fused = pd.concat(merged_rows, ignore_index=True)
+
+    trip_audio_mean = aud_df.groupby("trip_id")["audio_score_adjusted"].mean()
+    for trip_id in fused["trip_id"].unique():
+        mask = (fused["trip_id"] == trip_id) & (fused["audio_score_fused"] == 0)
+        if mask.any() and trip_id in trip_audio_mean.index:
+            fused.loc[mask, "audio_score_fused"] = trip_audio_mean[trip_id]
 
     fused["combined_score"] = (
         MOTION_WEIGHT * fused["motion_score"]
@@ -153,13 +194,7 @@ def fuse_signals(acc_df, aud_df):
 
     return fused
 
-
-# =========================================================
-# TEMPORAL FEATURES
-# =========================================================
-
 def engineer_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
-
     df = df.copy()
 
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
@@ -187,17 +222,88 @@ def engineer_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
+MIN_HOURS_FOR_VELOCITY = 0.25
 
-# =========================================================
-# TRIP FEATURE MATRIX
-# =========================================================
+def engineer_earnings_features(goals_df: pd.DataFrame) -> pd.DataFrame:
+    df = goals_df.copy()
+
+    if "earnings_velocity" in df.columns:
+        mask_zero = df["earnings_velocity"].isna() | (df["earnings_velocity"] == 0)
+        df.loc[mask_zero, "earnings_velocity"] = (
+            df.loc[mask_zero, "current_earnings"] /
+            df.loc[mask_zero, "current_hours"].clip(lower=MIN_HOURS_FOR_VELOCITY)
+        )
+
+    df["earnings_gap"] = (df["target_earnings"] - df["current_earnings"]).clip(lower=0)
+
+    df["goal_completion_pct"] = (
+        df["current_earnings"] / df["target_earnings"].replace(0, np.nan)
+    ).clip(0, 1.0)
+
+    for col in ["shift_start_time", "shift_end_time"]:
+        if col not in df.columns:
+            df[col] = np.nan
+
+    df["hours_elapsed"] = df["current_hours"].clip(lower=0)
+    df["hours_remaining"] = (
+        df["target_hours"] - df["hours_elapsed"]
+    ).clip(lower=0)
+
+    df["required_velocity"] = np.where(
+        df["hours_remaining"] > 0,
+        df["earnings_gap"] / df["hours_remaining"],
+        np.inf,
+    )
+    df["required_velocity"] = df["required_velocity"].replace(np.inf, 9999)
+
+    df["pacing_ratio"] = np.where(
+        df["required_velocity"] > 0,
+        df["earnings_velocity"] / df["required_velocity"].replace(0, np.nan),
+        np.nan,
+    )
+    df["pacing_ratio"] = df["pacing_ratio"].clip(0, 5)
+
+    df["is_cold_start"] = (df["current_hours"] < MIN_HOURS_FOR_VELOCITY).astype(int)
+
+    def _label(row):
+        if row["goal_completion_pct"] >= 1.0:
+            return "achieved"
+        if row["is_cold_start"]:
+            return "cold_start"
+        pr = row["pacing_ratio"]
+        if pd.isna(pr):
+            return "unknown"
+        if pr >= 1.25:
+            return "ahead"
+        if pr >= 0.85:
+            return "on_track"
+        if pr >= 0.50:
+            return "at_risk"
+        return "critical"
+
+    df["trajectory_label"] = df.apply(_label, axis=1)
+
+    df["projected_earnings"] = (
+        df["current_earnings"] +
+        df["earnings_velocity"] * df["hours_remaining"]
+    )
+    df["projected_completion_pct"] = (
+        df["projected_earnings"] / df["target_earnings"].replace(0, np.nan)
+    ).clip(0, 2.0)
+
+    logger.info(
+        f"[earnings features] "
+        f"on_track={( df['trajectory_label'] == 'on_track').sum()} | "
+        f"at_risk={(df['trajectory_label'] == 'at_risk').sum()} | "
+        f"critical={(df['trajectory_label'] == 'critical').sum()}"
+    )
+    return df
 
 def build_trip_feature_matrix(
     fused_df: pd.DataFrame,
     aud_df: pd.DataFrame,
     trips_df: Optional[pd.DataFrame] = None,
-):
-
+) -> pd.DataFrame:
     motion_agg = fused_df.groupby("trip_id").agg(
         n_accel_readings=("accel_magnitude_smooth", "count"),
         mean_accel=("accel_magnitude_smooth", "mean"),
@@ -258,13 +364,7 @@ def build_trip_feature_matrix(
 
     return trip_features.fillna(0)
 
-
-# =========================================================
-# PIPELINE RUNNER
-# =========================================================
-
-def build_all_features(datasets: dict):
-
+def build_all_features(datasets: dict) -> dict:
     from signal_preprocessing import preprocess_accelerometer, preprocess_audio
 
     acc = preprocess_accelerometer(datasets["accelerometer"])
@@ -284,8 +384,30 @@ def build_all_features(datasets: dict):
     )
 
     return {
-        "acc_features": acc,
-        "aud_features": aud,
-        "fused_features": fused,
-        "trip_features": trip_feat,
+        "acc_features":      acc,
+        "aud_features":      aud,
+        "fused_features":    fused,
+        "trip_features":     trip_feat,
+        "earnings_features": earnings_feat,
     }
+
+if __name__ == "__main__":
+    import sys
+    from data_ingestion import load_all
+
+    data_dir = sys.argv[1] if len(sys.argv) > 1 else "./driver_pulse_hackathon_data"
+    datasets = load_all(data_dir)
+    features = build_all_features(datasets)
+
+    print("\n══ Fused signal sample ══")
+    cols = ["trip_id", "timestamp", "motion_score", "audio_score_fused",
+            "combined_score", "stress_severity", "is_harsh_brake", "is_argument_signal"]
+    print(features["fused_features"][cols].head(15).to_string(index=False))
+
+    print("\n══ Trip feature matrix (top rows) ══")
+    print(features["trip_features"].head(8).to_string(index=False))
+
+    print("\n══ Earnings features sample ══")
+    ecols = ["driver_id", "earnings_velocity", "pacing_ratio",
+             "earnings_gap", "projected_completion_pct", "trajectory_label"]
+    print(features["earnings_features"][ecols].head(10).to_string(index=False))
